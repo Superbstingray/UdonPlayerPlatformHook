@@ -2,7 +2,7 @@
  
  ## Requirements
  
- * [VRCSDK3-Udon](https://vrchat.com/home/download) v2021.08.04.15.07+
+ * [VRCSDK3-Udon](https://vrchat.com/home/download) v.2021.08.04.15.07+
  * Unity 2019.4.29f1
  
  
