@@ -12,3 +12,7 @@ Prefab that functions as a drag and drop solution for making players correctly f
 ## Usage
 
 Drag the prefab into the root of your scene to use. You only need one. Set moving colliders to layer 11(Environment) or manually assign layers in the particle collision settings.
+
+## Other
+
+Doesn't currently work with CyanEmu due to it not supporting origin tracking.
