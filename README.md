@@ -15,4 +15,4 @@ Drag the prefab into the root of your scene to use. You only need one. Set movin
 
 ## Other
 
-Doesn't currently work with CyanEmu due to it not supporting origin tracking.
+Doesn't currently work with CyanEmu due to it not supporting origin tracking. Testing will need to be done in game.
