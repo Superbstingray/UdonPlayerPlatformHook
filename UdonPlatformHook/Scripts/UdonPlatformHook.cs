@@ -125,7 +125,6 @@ namespace superbstingray
 					PlatformOverride.enabled = true;
 					unhookThreshold = 0;
 				}
-			Debug.Log(unhookThreshold);
 		}
 
 		public override void OnPlayerRespawn(VRCPlayerApi onPlayerRespawnPlayer) 
