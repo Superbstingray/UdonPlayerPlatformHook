@@ -22,7 +22,7 @@ namespace superbstingray
 
 	public LayerMask HookLayerMask;
 	
-    private VRCPlayerApi localPlayer;
+	private VRCPlayerApi localPlayer;
 	private RaycastHit hitInfo;
 	private Collider[] nullArray;
 	private Collider[] colliderArray;
@@ -53,7 +53,7 @@ namespace superbstingray
 					Hook.eulerAngles = new Vector3(0F, 0F, 0F);
 					BaseTransform.parent.position = Hook.position;
 					BaseTransform.parent.rotation = Hook.rotation;
-                    PlatformOverride.enabled = true;
+					PlatformOverride.enabled = true;
 				}
 			}
 		}
@@ -149,7 +149,7 @@ namespace superbstingray
 			}
 		}
 
-        public void _OverrideOff() 
+		public void _OverrideOff() 
 		{
 			if (!(localPlayer.IsPlayerGrounded())) { PlatformOverride.enabled = false; }
 		}
