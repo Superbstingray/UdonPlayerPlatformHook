@@ -10,24 +10,24 @@ namespace superbstingray
 	public class UdonPlatformHook : UdonSharp.UdonSharpBehaviour
 {
 	[HideInInspector]
-	public Transform Hook;
+	public Transform hook;
 	[HideInInspector]
-	public Transform PlayerTracker;
+	public Transform playerTracker;
 	[HideInInspector]
-	public Transform BaseTransform;
+	public Transform originTracker;
 	[HideInInspector]
-	public BoxCollider PlatformOverride;
-	[HideInInspector]
-	public BoxCollider BaseCollider;
+	public BoxCollider platformOverride;
 
-	public LayerMask HookLayerMask;
+	[Tooltip("Layers that can be hooked.")]
+	public LayerMask hookLayerMask;
+	[Tooltip("Distance below the Player before hooking to Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
+	public float hookDistance = 1.25F;
 	
 	private VRCPlayerApi localPlayer;
 	private RaycastHit hitInfo;
 	private Collider[] nullArray;
 	private Collider[] colliderArray;
 	private Collider sceneCollider;
-	private Vector3 PlayerPosition;
 	private int unhookThreshold;
 	
 	[FieldChangeCallback(nameof(_IsHookedCallback))]
@@ -40,19 +40,19 @@ namespace superbstingray
 				if (IsHooked)	
 				{
 					IsHooked = false;
-					Hook.localPosition = new Vector3(0F, 0F, 0F);
-					Hook.eulerAngles = new Vector3(0F, 0F, 0F);
-					BaseTransform.parent.position = Hook.position;
-					BaseTransform.parent.rotation = Hook.rotation;
+					hook.localPosition = new Vector3(0F, 0F, 0F);
+					hook.eulerAngles = new Vector3(0F, 0F, 0F);
+					originTracker.parent.position = hook.position;
+					originTracker.parent.rotation = hook.rotation;
 				}
 				else
 				{
 					IsHooked = true;
-					Hook.localPosition = new Vector3(0F, 0F, 0F);
-					Hook.eulerAngles = new Vector3(0F, 0F, 0F);
-					BaseTransform.parent.position = Hook.position;
-					BaseTransform.parent.rotation = Hook.rotation;
-					PlatformOverride.enabled = true;
+					hook.localPosition = new Vector3(0F, 0F, 0F);
+					hook.eulerAngles = new Vector3(0F, 0F, 0F);
+					originTracker.parent.position = hook.position;
+					originTracker.parent.rotation = hook.rotation;
+					platformOverride.enabled = true;
 				}
 			}
 		}
@@ -60,16 +60,21 @@ namespace superbstingray
 
 		public void Start() 
 		{
+			hook = transform.GetChild(0).GetChild(0).GetChild(0);
+			playerTracker = transform.GetChild(0).GetChild(1);
+			originTracker = transform.GetChild(0).GetChild(0);
+			platformOverride = transform.GetChild(1).GetComponent<BoxCollider>();
+
 			localPlayer = Networking.LocalPlayer;
 			SendCustomEventDelayedSeconds("_SetIgnoreCollision", 2F);
-			PlatformOverride.size = new Vector3(0.5F, 0.035F, 0.5F);
+			platformOverride.size = new Vector3(0.5F, 0.035F, 0.5F);
 		}
 
 		public void FixedUpdate() 
 		{
-			Physics.SphereCast((localPlayer.GetPosition() + new Vector3(0F, 1F, 0F)), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 10F, HookLayerMask.value);
-			PlatformOverride.center = hitInfo.point;
-			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, 1F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 1.25F, HookLayerMask.value))
+			Physics.SphereCast((localPlayer.GetPosition() + new Vector3(0F, 1F, 0F)), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 10F, hookLayerMask.value);
+			platformOverride.center = hitInfo.point;
+			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, 1F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 1.25F, hookLayerMask.value))
 			{
 				unhookThreshold++;
 			} else
@@ -82,26 +87,24 @@ namespace superbstingray
 		{
 			if (IsHooked) 
 			{
-				PlayerTracker.position = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position;
-				PlayerTracker.rotation = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).rotation;
+				playerTracker.position = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position;
+				playerTracker.rotation = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).rotation;
 			}
-			PlayerPosition.x = localPlayer.GetPosition().x;
-			PlayerPosition.z = localPlayer.GetPosition().z;
 		}
 
 		public void LateUpdate() 
 		{
 			if (IsHooked)
 			{
-				BaseTransform.parent.position = Hook.position;
-				BaseTransform.parent.rotation = Hook.rotation;
+				originTracker.parent.position = hook.position;
+				originTracker.parent.rotation = hook.rotation;
 				nullArray = Physics.OverlapSphere((localPlayer.GetPosition()), 10000F, 1024);
 				for(int i=0; i<nullArray.Length; i++)
 				{
 					if (nullArray[i] == null)
 					{ 
-						localPlayer.TeleportTo(PlayerTracker.position, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
-						localPlayer.TeleportTo(localPlayer.GetPosition(), PlayerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
+						localPlayer.TeleportTo(playerTracker.position, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
+						localPlayer.TeleportTo(localPlayer.GetPosition(), playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
 					}
 				}
 			}
@@ -109,27 +112,27 @@ namespace superbstingray
 
 		public void PostLateUpdate() 
 		{
-			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, 1F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 1.25F, HookLayerMask.value))
+			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, 1F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 1.25F, hookLayerMask.value))
 			{
 				unhookThreshold++;
 				if (unhookThreshold > 50)
 				{
-					Hook.parent = BaseTransform;
+					hook.parent = originTracker;
 					SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
 					SetProgramVariable("IsHooked", false);
 				}
 			} else
 				{
-					Hook.parent = hitInfo.transform;
+					hook.parent = hitInfo.transform;
 					SetProgramVariable("IsHooked", true);
-					PlatformOverride.enabled = true;
+					platformOverride.enabled = true;
 					unhookThreshold = 0;
 				}
 		}
 
 		public override void OnPlayerRespawn(VRCPlayerApi onPlayerRespawnPlayer) 
 		{
-			Hook.parent = BaseTransform;
+			hook.parent = originTracker;
 			SetProgramVariable("IsHooked", false);
 		}
 
@@ -142,14 +145,14 @@ namespace superbstingray
 				sceneCollider = colliderArray[i];
 				if (Utilities.IsValid(sceneCollider))
 				{
-					Physics.IgnoreCollision(sceneCollider, PlatformOverride);
+					Physics.IgnoreCollision(sceneCollider, platformOverride);
 				}
 			}
 		}
 
 		public void _OverrideOff() 
 		{
-			if (!(localPlayer.IsPlayerGrounded())) { PlatformOverride.enabled = false; }
+			if (!(localPlayer.IsPlayerGrounded())) { platformOverride.enabled = false; }
 		}
 	}
 }
