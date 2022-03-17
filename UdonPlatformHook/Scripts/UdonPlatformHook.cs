@@ -18,7 +18,7 @@ namespace superbstingray
 	[HideInInspector]
 	public BoxCollider platformOverride;
 
-	[Tooltip("Layers that can be hooked.")]
+	[Tooltip("Set Layers that can be hooked.")]
 	public LayerMask hookLayerMask;
 	[Tooltip("Distance below the Player before hooking to Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
 	public float hookDistance = 1.25F;
