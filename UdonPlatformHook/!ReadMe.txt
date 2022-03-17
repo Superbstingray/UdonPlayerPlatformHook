@@ -14,4 +14,4 @@ You only need one of these prefabs in your scene. Do not add more than one.
 
 (Additional)
 
-Won't work with CyanEmu versions v0.3.10 or below as it wont support player origin tracking so you will need to verify behavior in game.
+Won't work with CyanEmu as it doesn't support player origin tracking so you will need to verify behavior in game.
