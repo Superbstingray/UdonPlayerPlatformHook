@@ -9,8 +9,9 @@
  * [VRCSDK3-Udon](https://vrchat.com/home/download) v.2022.02.16.19.13+
  * [VRChat-Community / Merlins Udon Sharp](https://github.com/vrchat-community/UdonSharp) (v0.20.3)
  * Unity 2019.4.30f1+
- 
-Drag & Drop solution for making players correctly follow moving Platforms / Vehicles / GameObjects in your scene when standing on them. Makes players "Functionally" behave as if they were parented to any GameObject they stand on. Behavior can be enabled or disabled based on layers.
+## About
+* Drag & Drop solution for making players correctly follow moving Platforms / Vehicles / GameObjects in your scene when standing on them. Makes players "Functionally" behave as if they were parented to any GameObject they stand on.
+* Behavior can be enabled or disabled based on layers.
 
 ## Usage
 
