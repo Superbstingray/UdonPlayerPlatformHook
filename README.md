@@ -4,18 +4,17 @@
 
 # UdonPlatformHook
  
- ## Requirements
+## Requirements
  
- * [VRCSDK3-Udon](https://vrchat.com/home/download) v.2021.08.04.15.07+
- * Unity 2019.4.29f1
+ * [VRCSDK3-Udon](https://vrchat.com/home/download) v.2022.02.16.19.13+
+ * [VRChat-Community / Merlins Udon Sharp](https://github.com/vrchat-community/UdonSharp) (v0.20.3)
+ * Unity 2019.4.30f1+
  
- 
-Prefab that functions as a drag and drop solution for making players correctly follow any moving Platforms, Vehicles and GameObjects in your scene when standing on them. Makes players functionally behave as if they were parented to the game object they are standing on. Players will seamlessly move and teleport with colliders they stand on. Behavior can be enabled or disabled based on layers. 
-
+Drag & Drop solution for making players correctly follow moving Platforms / Vehicles / GameObjects in your scene when standing on them. Makes players "Functionally" behave as if they were parented to any GameObject they stand on. Behavior can be enabled or disabled based on layers.
 
 ## Usage
 
-Drag the prefab into the root of your scene to use. You only need one. Set moving colliders to layer 11(Environment) or manually assign layers in the particle collision settings.
+Set your moving objects/platforms to layer 11(Environment) or a custom layer and assign layers in the layer mask.
 
 ## Example
 Typically the player is unable to follow moving colliders automatically and will remain stationary, with this prefab the player will follow collider movement and rotation.
