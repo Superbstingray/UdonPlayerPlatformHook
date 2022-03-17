@@ -17,7 +17,7 @@ Drag & Drop solution for making players correctly follow moving Platforms / Vehi
 Set your moving objects/platforms to layer 11(Environment) or a custom layer and assign layers in the layer mask.
 
 ## Example
-Typically the player is unable to follow moving colliders automatically and will remain stationary, with this prefab the player will follow collider movement and rotation.
+Typically the player is unable to follow moving colliders automatically and will remain stationary, with this prefab the player will follow collider movement and rotation correctly.
 
 https://user-images.githubusercontent.com/74171114/130368388-7721e8c7-ec4a-403f-b4bc-e561a8ad06fb.mp4
 
