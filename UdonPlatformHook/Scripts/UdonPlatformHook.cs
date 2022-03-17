@@ -67,14 +67,14 @@ namespace superbstingray
 			transform.position = Vector3.zero;
 			localPlayer = Networking.LocalPlayer;
 			SendCustomEventDelayedSeconds("_SetIgnoreCollision", 2F);
-			platformOverride.size = new Vector3(0.5F, 0.035F, 0.5F);
+			platformOverride.size = new Vector3(0.25F, 0.05F, 0.25F);
 		}
 
 		public void FixedUpdate() 
 		{
-			Physics.SphereCast((localPlayer.GetPosition() + new Vector3(0F, .25F, 0F)), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 10F, hookLayerMask.value);
+			Physics.SphereCast((localPlayer.GetPosition() + new Vector3(0F, .3F, 0F)), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 10F, hookLayerMask.value);
 			platformOverride.center = hitInfo.point;
-			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .25F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .25F, hookLayerMask.value))
+			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
 			{
 				unhookThreshold++;
 			}
@@ -113,7 +113,7 @@ namespace superbstingray
 
 		public void PostLateUpdate() 
 		{
-			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .25F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .25F, hookLayerMask.value))
+			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
 			{
 				unhookThreshold++;
 				if (unhookThreshold > 50)
