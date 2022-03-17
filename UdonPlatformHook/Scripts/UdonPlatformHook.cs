@@ -18,18 +18,18 @@ namespace superbstingray
 	[HideInInspector]
 	public BoxCollider platformOverride;
 
-	[Tooltip("Set Layers that can be hooked.")]
+	[Tooltip("Layers the Player will move with.")]
 	public LayerMask hookLayerMask;
 	[Tooltip("Distance below the Player before hooking to Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
-	public float hookDistance = 1.25F;
-	
+	public float hookDistance = 0.75F;
+
 	private VRCPlayerApi localPlayer;
 	private RaycastHit hitInfo;
 	private Collider[] nullArray;
 	private Collider[] colliderArray;
 	private Collider sceneCollider;
 	private int unhookThreshold;
-	
+
 	[FieldChangeCallback(nameof(_IsHookedCallback))]
 	private bool IsHooked;
 	public bool _IsHookedCallback
@@ -40,16 +40,16 @@ namespace superbstingray
 				if (IsHooked)	
 				{
 					IsHooked = false;
-					hook.localPosition = new Vector3(0F, 0F, 0F);
-					hook.eulerAngles = new Vector3(0F, 0F, 0F);
+					hook.localPosition = Vector3.zero;
+					hook.eulerAngles = Vector3.zero;
 					originTracker.parent.position = hook.position;
 					originTracker.parent.rotation = hook.rotation;
 				}
 				else
 				{
 					IsHooked = true;
-					hook.localPosition = new Vector3(0F, 0F, 0F);
-					hook.eulerAngles = new Vector3(0F, 0F, 0F);
+					hook.localPosition = Vector3.zero;
+					hook.eulerAngles = Vector3.zero;
 					originTracker.parent.position = hook.position;
 					originTracker.parent.rotation = hook.rotation;
 					platformOverride.enabled = true;
@@ -64,7 +64,7 @@ namespace superbstingray
 			playerTracker = transform.GetChild(0).GetChild(1);
 			originTracker = transform.GetChild(0).GetChild(0);
 			platformOverride = transform.GetChild(1).GetComponent<BoxCollider>();
-
+			transform.position = Vector3.zero;
 			localPlayer = Networking.LocalPlayer;
 			SendCustomEventDelayedSeconds("_SetIgnoreCollision", 2F);
 			platformOverride.size = new Vector3(0.5F, 0.035F, 0.5F);
@@ -72,9 +72,9 @@ namespace superbstingray
 
 		public void FixedUpdate() 
 		{
-			Physics.SphereCast((localPlayer.GetPosition() + new Vector3(0F, 1F, 0F)), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 10F, hookLayerMask.value);
+			Physics.SphereCast((localPlayer.GetPosition() + new Vector3(0F, .25F, 0F)), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 10F, hookLayerMask.value);
 			platformOverride.center = hitInfo.point;
-			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, 1F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 1.25F, hookLayerMask.value))
+			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .25F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .25F, hookLayerMask.value))
 			{
 				unhookThreshold++;
 			} else
@@ -102,7 +102,7 @@ namespace superbstingray
 				for(int i=0; i<nullArray.Length; i++)
 				{
 					if (nullArray[i] == null)
-					{ 
+					{
 						localPlayer.TeleportTo(playerTracker.position, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
 						localPlayer.TeleportTo(localPlayer.GetPosition(), playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
 					}
@@ -112,7 +112,7 @@ namespace superbstingray
 
 		public void PostLateUpdate() 
 		{
-			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, 1F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 1.25F, hookLayerMask.value))
+			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .25F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .25F, hookLayerMask.value))
 			{
 				unhookThreshold++;
 				if (unhookThreshold > 50)

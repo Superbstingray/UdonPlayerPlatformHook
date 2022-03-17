@@ -361,7 +361,7 @@ MonoBehaviour:
       Data: 24|UnityEngine.TooltipAttribute, UnityEngine.CoreModule
     - Name: tooltip
       Entry: 1
-      Data: Layers that can be hooked.
+      Data: Layers the Player will move with.
     - Name: 
       Entry: 8
       Data: 
