@@ -28,7 +28,6 @@ namespace superbstingray
 	private Collider[] colliderArray;
 	private Collider sceneCollider;
 	private Vector3 PlayerPosition;
-	private Vector3 lastFrame;
 	private int unhookThreshold;
 	
 	[FieldChangeCallback(nameof(_IsHookedCallback))]
