@@ -113,7 +113,7 @@ namespace superbstingray
 			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, 1F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 1.25F, HookLayerMask.value))
 			{
 				unhookThreshold++;
-				if (unhookThreshold > 25)
+				if (unhookThreshold > 50)
 				{
 					Hook.parent = BaseTransform;
 					SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
