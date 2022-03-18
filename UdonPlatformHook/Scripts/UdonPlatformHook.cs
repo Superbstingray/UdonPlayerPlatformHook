@@ -35,6 +35,7 @@ namespace superbstingray
 	private Vector3 lastHookPosition;
 	private Vector3 lastHookRotation;
 	private int unhookThreshold;
+	private int localColliders;
 	private int fixedFrame;
 
 	[FieldChangeCallback(nameof(_IsHookedCallback))]
@@ -60,6 +61,8 @@ namespace superbstingray
 					originTracker.parent.position = hook.position;
 					originTracker.parent.rotation = hook.rotation;
 					platformOverride.enabled = true;
+					nullArray = Physics.OverlapSphere((localPlayer.GetPosition()), 1000F, 1024);
+					localColliders = nullArray.Length;
 				}
 			}
 		}
@@ -132,14 +135,11 @@ namespace superbstingray
 				originTracker.parent.position = hook.position;
 				originTracker.parent.rotation = hook.rotation;
 
-				nullArray = Physics.OverlapSphere((localPlayer.GetPosition()), 10000F, 1024);
-				for(int i=0; i<nullArray.Length; i++)
+				nullArray = Physics.OverlapSphere((localPlayer.GetPosition()), 1000F, 1024);
+				if (nullArray.Length >= localColliders)
 				{
-					if (nullArray[i] == null)
-					{
-						localPlayer.TeleportTo(playerTracker.position, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
-						localPlayer.TeleportTo(localPlayer.GetPosition(), playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
-					}
+					localPlayer.TeleportTo(playerTracker.position, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
+					localPlayer.TeleportTo(localPlayer.GetPosition(), playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
 				}
 			}
 		}
