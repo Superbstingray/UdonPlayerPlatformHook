@@ -20,6 +20,4 @@ Colliders with Rigidbodies that have Interpolate or Extrapolate set can have iss
 
 Objects with mesh Colliders may need RigidBodies to work properly.
 
-If your world utilizes VRCPlayerAPI.Immobilize the ReduceIKDrift setting may interfere with it.
-
 Won't work with CyanEmu versions v0.3.10 or below as it wont support player origin tracking so you will need to verify behavior in game.
