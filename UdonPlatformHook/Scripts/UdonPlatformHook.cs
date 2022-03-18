@@ -24,7 +24,7 @@ namespace superbstingray
 	public LayerMask hookLayerMask;
 	[Tooltip("Distance below the Player before hooking to Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
 	public float hookDistance = 0.75F;
-	[Tooltip("Partially resets Avatar Inverse Kinematics periodically when being moved by platforms to prevent Avatar footstep IK from drifting.")]
+	[Tooltip("Partially resets Avatar Inverse Kinematics periodically when being moved by platforms to prevent Avatar IK drift / IK walk.")]
 	public bool reduceIKDrift = true;
 
 	private VRCPlayerApi localPlayer;
