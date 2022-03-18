@@ -18,4 +18,6 @@ You only need one of these prefabs in your scene.
 
 Colliders with Rigidbodies that have Interpolate or Extrapolate set can have issues with fast linear vertical movement.
 
+If your world utilizes VRCPlayerAPI.Immobilize the ReduceIKDrift setting may interfere with it.
+
 Won't work with CyanEmu versions v0.3.10 or below as it wont support player origin tracking so you will need to verify behavior in game.
