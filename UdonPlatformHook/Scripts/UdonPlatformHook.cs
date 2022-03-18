@@ -100,7 +100,7 @@ namespace superbstingray
 				if(reduceIKDrift)
 				{
 					lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
-					lastHookRotation = Vector3.Lerp(hook.eulerAngles, lastHookRotation, 0.025F);
+					lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
 					platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
 
 					fixedFrame++;
