@@ -20,16 +20,17 @@ namespace superbstingray
 	[HideInInspector]
 	public BoxCollider platformOverride;
 
-	[Tooltip("Layers the Player will move with.")]
+	[Tooltip("Layers that the Player will move with.")]
 	public LayerMask hookLayerMask;
-	[Tooltip("Distance below the Player before hooking to Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
+
+	[Tooltip("Distance below the Player before the Script hooks to Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
 	public float hookDistance = 0.75F;
-	[Tooltip("Partially resets Avatar Inverse Kinematics periodically when being moved by platforms to prevent Avatar IK drift / IK walk.")]
+
+	[Tooltip("Will partially reset Avatar Inverse Kinematics periodically when being moved by platforms to prevent Avatar IK drift / IK walk.")]
 	public bool reduceIKDrift = true;
 
 	private VRCPlayerApi localPlayer;
 	private RaycastHit hitInfo;
-	private Collider[] nullArray;
 	private Collider[] colliderArray;
 	private Collider sceneCollider;
 	private Vector3 lastHookPosition;
@@ -52,17 +53,17 @@ namespace superbstingray
 					hook.eulerAngles = Vector3.zero;
 					originTracker.parent.position = hook.position;
 					originTracker.parent.rotation = hook.rotation;
+
 				}
 				else
 				{
 					IsHooked = true;
 					hook.localPosition = Vector3.zero;
 					hook.eulerAngles = Vector3.zero;
+					platformOverride.enabled = true;
 					originTracker.parent.position = hook.position;
 					originTracker.parent.rotation = hook.rotation;
-					platformOverride.enabled = true;
-					nullArray = Physics.OverlapSphere((localPlayer.GetPosition()), 1000F, 1024);
-					localColliders = nullArray.Length;
+					localColliders = Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length;
 				}
 			}
 		}
@@ -70,16 +71,17 @@ namespace superbstingray
 
 		public void Start() 
 		{
-			hook = transform.GetChild(0).GetChild(0).GetChild(0);
-			platformOffset = transform.GetChild(0).GetChild(0).GetChild(0).GetChild(0);
+			localPlayer = Networking.LocalPlayer;
+
 			playerTracker = transform.GetChild(0).GetChild(1);
 			originTracker = transform.GetChild(0).GetChild(0);
+			hook = transform.GetChild(0).GetChild(0).GetChild(0);
+			platformOffset = transform.GetChild(0).GetChild(0).GetChild(0).GetChild(0);
 			platformOverride = transform.GetChild(1).GetComponent<BoxCollider>();
 			transform.position = Vector3.zero;
-
-			localPlayer = Networking.LocalPlayer;
-			SendCustomEventDelayedSeconds("_SetIgnoreCollision", 2F);
 			platformOverride.size = new Vector3(0.5F, 0.05F, 0.5F);
+
+			SendCustomEventDelayedSeconds("_SetIgnoreCollision", 2F);
 		}
 
 		public void FixedUpdate() 
@@ -95,9 +97,9 @@ namespace superbstingray
 			{
 				unhookThreshold = 0;
 			}
-			if(IsHooked)
+			if (IsHooked)
 			{
-				if(reduceIKDrift)
+				if (reduceIKDrift)
 				{
 					lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
 					lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
@@ -135,8 +137,7 @@ namespace superbstingray
 				originTracker.parent.position = hook.position;
 				originTracker.parent.rotation = hook.rotation;
 
-				nullArray = Physics.OverlapSphere((localPlayer.GetPosition()), 1000F, 1024);
-				if (nullArray.Length >= localColliders)
+				if (Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length >= localColliders)
 				{
 					localPlayer.TeleportTo(playerTracker.position, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
 					localPlayer.TeleportTo(localPlayer.GetPosition(), playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
@@ -152,16 +153,17 @@ namespace superbstingray
 				if (unhookThreshold > 50)
 				{
 					hook.parent = originTracker;
-					SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
 					SetProgramVariable("IsHooked", false);
+
+					SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
 				}
 			}
 			else
 			{
-				hook.parent = hitInfo.transform;
-				SetProgramVariable("IsHooked", true);
-				platformOverride.enabled = true;
 				unhookThreshold = 0;
+				hook.parent = hitInfo.transform;
+				platformOverride.enabled = true;
+				SetProgramVariable("IsHooked", true);
 			}
 		}
 
@@ -170,16 +172,14 @@ namespace superbstingray
 			hook.parent = originTracker;
 			SetProgramVariable("IsHooked", false);
 
-			if(reduceIKDrift)
-			{
-				localPlayer.Immobilize(false);
-			}
+			if (reduceIKDrift) { localPlayer.Immobilize(false); }
 		}
 
 		public void _SetIgnoreCollision()
 		{
-			colliderArray = Physics.OverlapSphere(Vector3.zero, 10000F);
 			SendCustomEventDelayedSeconds("_SetIgnoreCollision", 60F);
+
+			colliderArray = Physics.OverlapSphere(Vector3.zero, 10000F);
 			for (int i = 0; (i < colliderArray.Length); i = (i + 1))
 			{
 				sceneCollider = colliderArray[i];
@@ -194,7 +194,7 @@ namespace superbstingray
 		{
 			if (!(localPlayer.IsPlayerGrounded())) { platformOverride.enabled = false; }
 			
-			if(reduceIKDrift) { localPlayer.Immobilize(false); }
+			if (reduceIKDrift) { localPlayer.Immobilize(false); }
 		}
 	}
 }
