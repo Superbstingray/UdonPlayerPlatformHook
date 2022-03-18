@@ -16,7 +16,7 @@ You only need one of these prefabs in your scene.
 
 (Additional)
 
-Colliders with Rigidbodies that have Interpolate or Extrapolate set can have issues with fast linear vertical movement.
+Objects with Rigidbodies that have Interpolate or Extrapolate set that move on FixedUpdate can have issues with fast linear vertical movement.
 
 If your world utilizes VRCPlayerAPI.Immobilize the ReduceIKDrift setting may interfere with it.
 
