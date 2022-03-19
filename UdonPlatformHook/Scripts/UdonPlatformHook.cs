@@ -46,32 +46,34 @@ namespace superbstingray
 	private int fixedFrame;
 	private int intUI;
 	private bool menuOpen;
+	private bool isHooked;
 
 
-	[FieldChangeCallback(nameof(_IsHookedCallback))]
-	private bool IsHooked;
-	public bool _IsHookedCallback
+	[FieldChangeCallback(nameof(_hookChangeStateCallback))]
+	private bool hookChangeState;
+	public bool _hookChangeStateCallback
 	{
 		set
 		{
 			{
-				if (IsHooked)	
+				if (hookChangeState)	
 				{
-					IsHooked = false;
+					hookChangeState = false;
 					hook.localPosition = Vector3.zero;
 					hook.eulerAngles = Vector3.zero;
 					originTracker.parent.position = hook.position;
 					originTracker.parent.rotation = hook.rotation;
-
+					isHooked = false;
 				}
 				else
 				{
-					IsHooked = true;
+					hookChangeState = true;
 					hook.localPosition = Vector3.zero;
 					hook.eulerAngles = Vector3.zero;
 					platformOverride.enabled = true;
 					originTracker.parent.position = hook.position;
 					originTracker.parent.rotation = hook.rotation;
+					isHooked = true;
 					localColliders = Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length;
 				}
 			}
@@ -108,7 +110,7 @@ namespace superbstingray
 				{
 					unhookThreshold = 0;
 				}
-				if (IsHooked && reduceIKDrift)
+				if (isHooked && reduceIKDrift)
 				{
 					lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
 					lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
@@ -130,14 +132,18 @@ namespace superbstingray
 
 		public void Update() 
 		{
-			if (IsHooked) 
+			if (isHooked) 
 			{
 				playerTracker.position = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position;
 				playerTracker.rotation = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).rotation;
 			}
+
+			if (isHooked && menuOpen)
+			{
+				localPlayer.SetVelocity(Vector3.zero);
+			}
 		}
 		
-
 		public void LateUpdate() 
 		{
 			if (mainMenuPause || quickMenuPause)
@@ -161,7 +167,7 @@ namespace superbstingray
 				}
 			}
 			
-			if (IsHooked && !menuOpen)
+			if (isHooked && !menuOpen)
 			{
 				originTracker.parent.position = hook.position;
 				originTracker.parent.rotation = hook.rotation;
@@ -176,30 +182,34 @@ namespace superbstingray
 
 		public void PostLateUpdate() 
 		{
-			if (!menuOpen && IsHooked && !Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
+			if (!menuOpen && isHooked && !Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
 			{
 				unhookThreshold++;
-				if (unhookThreshold > 50)
+				if (unhookThreshold > 25)
 				{
 					hook.parent = originTracker;
-					SetProgramVariable("IsHooked", false);
+					SetProgramVariable("hookChangeState", false);
 
 					SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
 				}
 			}
 			else
 			{
-				unhookThreshold = 0;
-				hook.parent = hitInfo.transform;
-				platformOverride.enabled = true;
-				SetProgramVariable("IsHooked", true);
+				if (unhookThreshold < 10)
+				{
+					hook.parent = hitInfo.transform;
+					platformOverride.enabled = true;
+					SetProgramVariable("hookChangeState", true);
+				}
 			}
 		}
 
 		public override void OnPlayerRespawn(VRCPlayerApi onPlayerRespawnPlayer) 
 		{
 			hook.parent = originTracker;
-			SetProgramVariable("IsHooked", false);
+			SetProgramVariable("hookChangeState", false);
+
+			localPlayer.SetVelocity(Vector3.zero);
 
 			if (reduceIKDrift)
 			{
