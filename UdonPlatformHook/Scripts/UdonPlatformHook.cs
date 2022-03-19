@@ -29,7 +29,7 @@ namespace superbstingray
 	[Tooltip("Will partially reset Avatar Inverse Kinematics periodically when being moved by platforms to prevent Avatar IK drift / IK walk.")]
 	public bool reduceIKDrift = true;
 
-	[Tooltip("Detect if the Player has thier menu open and will stop moving them.")]
+	[Tooltip("Detect if the Player has thier menu open and stop moving them.")]
 	public bool menuPause = true;
 
 	private VRCPlayerApi localPlayer;
