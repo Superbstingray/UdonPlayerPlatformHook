@@ -29,6 +29,9 @@ namespace superbstingray
 	[Tooltip("Will partially reset Avatar Inverse Kinematics periodically when being moved by platforms to prevent Avatar IK drift / IK walk.")]
 	public bool reduceIKDrift = true;
 
+	[Tooltip("Detect if the Player has thier menu open and will stop moving them.")]
+	public bool menuPause = true;
+
 	private VRCPlayerApi localPlayer;
 	private RaycastHit hitInfo;
 	private Collider[] colliderArray;
@@ -38,8 +41,9 @@ namespace superbstingray
 	private int unhookThreshold;
 	private int localColliders;
 	private int fixedFrame;
-	private int internalUI;
+	private int intUI;
 	private bool menuOpen;
+
 
 	[FieldChangeCallback(nameof(_IsHookedCallback))]
 	private bool IsHooked;
@@ -128,24 +132,19 @@ namespace superbstingray
 
 		public void Update() 
 		{
-			internalUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10F, 524288).Length;
-			if ((internalUI >= 3)) 
+			if (menuPause)
 			{
-				menuOpen = true;
-
-				if ((internalUI >= 6)) 
+				intUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10F, 524288).Length;
+				if (intUI == 3 || intUI == 12 || intUI == 13) 
 				{
-					menuOpen = false;
+					menuOpen = true; 
 				}
 				else
 				{
-					menuOpen = true;
+					menuOpen = false;
 				}
 			}
-			else
-			{
-				menuOpen = false;
-			}
+
 			if (!menuOpen)
 			{
 				if (IsHooked) 
