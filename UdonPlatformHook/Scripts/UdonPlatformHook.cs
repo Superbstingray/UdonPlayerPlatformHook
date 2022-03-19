@@ -108,25 +108,20 @@ namespace superbstingray
 				{
 					unhookThreshold = 0;
 				}
-				if (IsHooked)
+				if (IsHooked && reduceIKDrift)
 				{
-					if (reduceIKDrift)
-					{
-						lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
-						lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
-						platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
+					lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
+					lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
+					platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
 
-						fixedFrame++;
-						if (!((Vector3.Distance(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position) > 0.01F))) 
+					fixedFrame++;
+					if (!((Vector3.Distance(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position) > 0.01F)) 
+					&& ((Vector3.Distance(lastHookPosition, hook.position) + Vector3.Distance(lastHookRotation, hook.eulerAngles)) > 0.01F)) 
+					{
+						localPlayer.Immobilize((fixedFrame >= 150));
+						if ((fixedFrame > 150))
 						{
-							if (((Vector3.Distance(lastHookPosition, hook.position) + Vector3.Distance(lastHookRotation, hook.eulerAngles)) > 0.01F)) 
-							{
-								localPlayer.Immobilize((fixedFrame >= 150));
-								if ((fixedFrame > 150))
-								{
-									fixedFrame = 0;
-								}
-							}
+							fixedFrame = 0;
 						}
 					}
 				}
@@ -168,44 +163,38 @@ namespace superbstingray
 				}
 			}
 			
-			if (!menuOpen)
+			if (!menuOpen && IsHooked)
 			{
-				if (IsHooked)
-				{
-					originTracker.parent.position = hook.position;
-					originTracker.parent.rotation = hook.rotation;
+				originTracker.parent.position = hook.position;
+				originTracker.parent.rotation = hook.rotation;
 
-					if (Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length >= localColliders)
-					{
-						localPlayer.TeleportTo(playerTracker.position, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
-						localPlayer.TeleportTo(localPlayer.GetPosition(), playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
-					}
+				if (Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length >= localColliders)
+				{
+					localPlayer.TeleportTo(playerTracker.position, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
+					localPlayer.TeleportTo(localPlayer.GetPosition(), playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
 				}
 			}
 		}
 
 		public void PostLateUpdate() 
 		{
-			if (!menuOpen)
+			if (!menuOpen && !Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
 			{
-				if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
+				unhookThreshold++;
+				if (unhookThreshold > 50)
 				{
-					unhookThreshold++;
-					if (unhookThreshold > 50)
-					{
-						hook.parent = originTracker;
-						SetProgramVariable("IsHooked", false);
+					hook.parent = originTracker;
+					SetProgramVariable("IsHooked", false);
 
-						SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
-					}
+					SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
 				}
-				else
-				{
-					unhookThreshold = 0;
-					hook.parent = hitInfo.transform;
-					platformOverride.enabled = true;
-					SetProgramVariable("IsHooked", true);
-				}
+			}
+			else
+			{
+				unhookThreshold = 0;
+				hook.parent = hitInfo.transform;
+				platformOverride.enabled = true;
+				SetProgramVariable("IsHooked", true);
 			}
 		}
 
