@@ -29,8 +29,11 @@ namespace superbstingray
 	[Tooltip("Will partially reset Avatar Inverse Kinematics periodically when being moved by platforms to prevent Avatar IK drift / IK walk.")]
 	public bool reduceIKDrift = true;
 
-	[Tooltip("Detect if the Player has their menu open and stop moving them.")]
-	public bool menuPause = true;
+	[Tooltip("Detect if the Player has their Main Menu open and stop moving them.")]
+	public bool mainMenuPause = true;
+
+	[Tooltip("Detect if the Player has their Quick Menu open and stop moving them.")]
+	public bool quickMenuPause = false;
 
 	private VRCPlayerApi localPlayer;
 	private RaycastHit hitInfo;
@@ -132,19 +135,6 @@ namespace superbstingray
 
 		public void Update() 
 		{
-			if (menuPause)
-			{
-				intUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10F, 524288).Length;
-				if (intUI == 3 || intUI == 12 || intUI == 13) 
-				{
-					menuOpen = true; 
-				}
-				else
-				{
-					menuOpen = false;
-				}
-			}
-
 			if (!menuOpen)
 			{
 				if (IsHooked) 
@@ -157,6 +147,27 @@ namespace superbstingray
 
 		public void LateUpdate() 
 		{
+			if (mainMenuPause || quickMenuPause)
+			{
+				intUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10F, 524288).Length;
+				
+				if (mainMenuPause && intUI == 3 || intUI == 12 || intUI == 13) 
+				{
+					menuOpen = true; 
+				}
+				else
+				{
+					if (quickMenuPause && intUI == 8 || intUI == 17 || intUI == 18 || intUI == 19 || intUI == 20) 
+					{
+						menuOpen = true; 
+					}
+					else
+					{
+						menuOpen = false;
+					}
+				}
+			}
+			
 			if (!menuOpen)
 			{
 				if (IsHooked)
