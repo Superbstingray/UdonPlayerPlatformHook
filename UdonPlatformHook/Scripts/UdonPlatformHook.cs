@@ -73,6 +73,7 @@ namespace superbstingray
 					platformOverride.enabled = true;
 					originTracker.parent.position = hook.position;
 					originTracker.parent.rotation = hook.rotation;
+
 					isHooked = true;
 					localColliders = Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length;
 				}
@@ -121,6 +122,10 @@ namespace superbstingray
 						{
 							fixedFrame = 0;
 						}
+					}
+					else
+					{
+						localPlayer.Immobilize(false);
 					}
 				}
 			}
