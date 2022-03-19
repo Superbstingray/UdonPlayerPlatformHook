@@ -92,11 +92,11 @@ namespace superbstingray
 
 		public void FixedUpdate() 
 		{
-			Physics.SphereCast((localPlayer.GetPosition() + new Vector3(0F, .3F, 0F)), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 10F, hookLayerMask.value);
-			platformOverride.center = hitInfo.point;
-
 			if (!menuOpen)
 			{
+				Physics.SphereCast((localPlayer.GetPosition() + new Vector3(0F, .3F, 0F)), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 10F, hookLayerMask.value);
+				platformOverride.center = hitInfo.point;
+
 				if	(!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
 				{
 					unhookThreshold++;
@@ -203,7 +203,10 @@ namespace superbstingray
 			hook.parent = originTracker;
 			SetProgramVariable("IsHooked", false);
 
-			if (reduceIKDrift) { localPlayer.Immobilize(false); }
+			if (reduceIKDrift)
+			{
+				localPlayer.Immobilize(false);
+			}
 		}
 
 		public void _SetIgnoreCollision()
@@ -223,9 +226,15 @@ namespace superbstingray
 
 		public void _OverrideOff() 
 		{
-			if (!(localPlayer.IsPlayerGrounded())) { platformOverride.enabled = false; }
+			if (!(localPlayer.IsPlayerGrounded())) 
+			{
+				platformOverride.enabled = false;
+			}
 			
-			if (reduceIKDrift) { localPlayer.Immobilize(false); }
+			if (reduceIKDrift)
+			{
+				localPlayer.Immobilize(false);
+			}
 		}
 	}
 }
