@@ -112,16 +112,12 @@ namespace superbstingray
 				}
 				if (isHooked && reduceIKDrift)
 				{
-					lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
-					lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
-					platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
-
 					fixedFrame++;
-					if (!((Vector3.Distance(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position) > 0.01F)) 
-					&& ((Vector3.Distance(lastHookPosition, hook.position) + Vector3.Distance(lastHookRotation, hook.eulerAngles)) > 0.01F)) 
+					if (!((Vector3.Distance(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position) > 0.1F)) 
+					&& ((Vector3.Distance(lastHookPosition, hook.position) + Vector3.Distance(lastHookRotation, hook.eulerAngles)) > 0.1F)) 
 					{
-						localPlayer.Immobilize((fixedFrame >= 150));
-						if ((fixedFrame > 150))
+						localPlayer.Immobilize((fixedFrame >= 160));
+						if ((fixedFrame > 160))
 						{
 							fixedFrame = 0;
 						}
@@ -142,6 +138,12 @@ namespace superbstingray
 			{
 				localPlayer.SetVelocity(Vector3.zero);
 			}
+				if (isHooked && reduceIKDrift)
+				{
+					lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
+					lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
+					platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
+				}
 		}
 		
 		public void LateUpdate() 
