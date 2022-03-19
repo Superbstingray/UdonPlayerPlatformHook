@@ -38,6 +38,8 @@ namespace superbstingray
 	private int unhookThreshold;
 	private int localColliders;
 	private int fixedFrame;
+	private int internalUI;
+	private bool menuOpen;
 
 	[FieldChangeCallback(nameof(_IsHookedCallback))]
 	private bool IsHooked;
@@ -89,31 +91,34 @@ namespace superbstingray
 			Physics.SphereCast((localPlayer.GetPosition() + new Vector3(0F, .3F, 0F)), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 10F, hookLayerMask.value);
 			platformOverride.center = hitInfo.point;
 
-			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
+			if (!menuOpen)
 			{
-				unhookThreshold++;
-			}
-			else
-			{
-				unhookThreshold = 0;
-			}
-			if (IsHooked)
-			{
-				if (reduceIKDrift)
+				if	(!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
 				{
-					lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
-					lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
-					platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
-
-					fixedFrame++;
-					if (!((Vector3.Distance(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position) > 0.01F))) 
+					unhookThreshold++;
+				}
+				else
+				{
+					unhookThreshold = 0;
+				}
+				if (IsHooked)
+				{
+					if (reduceIKDrift)
 					{
-						if (((Vector3.Distance(lastHookPosition, hook.position) + Vector3.Distance(lastHookRotation, hook.eulerAngles)) > 0.01F)) 
+						lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
+						lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
+						platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
+
+						fixedFrame++;
+						if (!((Vector3.Distance(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position) > 0.01F))) 
 						{
-							localPlayer.Immobilize((fixedFrame >= 150));
-							if ((fixedFrame > 150))
+							if (((Vector3.Distance(lastHookPosition, hook.position) + Vector3.Distance(lastHookRotation, hook.eulerAngles)) > 0.01F)) 
 							{
-								fixedFrame = 0;
+								localPlayer.Immobilize((fixedFrame >= 150));
+								if ((fixedFrame > 150))
+								{
+									fixedFrame = 0;
+								}
 							}
 						}
 					}
@@ -123,47 +128,74 @@ namespace superbstingray
 
 		public void Update() 
 		{
-			if (IsHooked) 
+			internalUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10F, 524288).Length;
+			if ((internalUI >= 3)) 
 			{
-				playerTracker.position = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position;
-				playerTracker.rotation = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).rotation;
+				menuOpen = true;
+
+				if ((internalUI >= 6)) 
+				{
+					menuOpen = false;
+				}
+				else
+				{
+					menuOpen = true;
+				}
+			}
+			else
+			{
+				menuOpen = false;
+			}
+			if (!menuOpen)
+			{
+				if (IsHooked) 
+				{
+					playerTracker.position = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position;
+					playerTracker.rotation = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).rotation;
+				}
 			}
 		}
 
 		public void LateUpdate() 
 		{
-			if (IsHooked)
+			if (!menuOpen)
 			{
-				originTracker.parent.position = hook.position;
-				originTracker.parent.rotation = hook.rotation;
-
-				if (Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length >= localColliders)
+				if (IsHooked)
 				{
-					localPlayer.TeleportTo(playerTracker.position, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
-					localPlayer.TeleportTo(localPlayer.GetPosition(), playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
+					originTracker.parent.position = hook.position;
+					originTracker.parent.rotation = hook.rotation;
+
+					if (Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length >= localColliders)
+					{
+						localPlayer.TeleportTo(playerTracker.position, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
+						localPlayer.TeleportTo(localPlayer.GetPosition(), playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
+					}
 				}
 			}
 		}
 
 		public void PostLateUpdate() 
 		{
-			if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
+			if (!menuOpen)
 			{
-				unhookThreshold++;
-				if (unhookThreshold > 50)
+				if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
 				{
-					hook.parent = originTracker;
-					SetProgramVariable("IsHooked", false);
+					unhookThreshold++;
+					if (unhookThreshold > 50)
+					{
+						hook.parent = originTracker;
+						SetProgramVariable("IsHooked", false);
 
-					SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
+						SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
+					}
 				}
-			}
-			else
-			{
-				unhookThreshold = 0;
-				hook.parent = hitInfo.transform;
-				platformOverride.enabled = true;
-				SetProgramVariable("IsHooked", true);
+				else
+				{
+					unhookThreshold = 0;
+					hook.parent = hitInfo.transform;
+					platformOverride.enabled = true;
+					SetProgramVariable("IsHooked", true);
+				}
 			}
 		}
 
