@@ -187,7 +187,7 @@ namespace superbstingray
 			if (!menuOpen && isHooked && !Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
 			{
 				unhookThreshold++;
-				if (unhookThreshold > 25)
+				if (unhookThreshold > 30)
 				{
 					hook.parent = originTracker;
 					SetProgramVariable("hookChangeState", false);
@@ -209,6 +209,7 @@ namespace superbstingray
 		public override void OnPlayerRespawn(VRCPlayerApi onPlayerRespawnPlayer) 
 		{
 			hook.parent = originTracker;
+			unhookThreshold = 35;
 			SetProgramVariable("hookChangeState", false);
 
 			localPlayer.SetVelocity(Vector3.zero);
