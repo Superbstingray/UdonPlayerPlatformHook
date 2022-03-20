@@ -76,15 +76,11 @@ namespace superbstingray
 					hookChangeState = true;
 					hook.localPosition = Vector3.zero;
 					hook.eulerAngles = Vector3.zero;
-					platformOverride.enabled = true;
+					platformOverride.enabled = true;	
 					originTracker.parent.position = hook.position;
 					originTracker.parent.rotation = hook.rotation;
 
-					localColliders = Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length;
-					if (localColliders == 0)
-					{
-						localColliders++;
-					}
+					localColliders = Mathf.Clamp(Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length, 1, 100);
 
 					isHooked = true;
 				}
