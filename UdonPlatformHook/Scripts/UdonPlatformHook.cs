@@ -59,32 +59,27 @@ namespace superbstingray
 	{
 		set
 		{
+			if (hookChangeState)	
 			{
-				if (hookChangeState)	
-				{
-					hookChangeState = false;
-					hook.localPosition = Vector3.zero;
-					hook.eulerAngles = Vector3.zero;
-					originTracker.parent.position = hook.position;
-					originTracker.parent.rotation = hook.rotation;
-					localPlayer.SetVelocity(playerVelocity);
-
-					isHooked = false;
-				}
-				else
-				{
-					hookChangeState = true;
-					hook.localPosition = Vector3.zero;
-					hook.eulerAngles = Vector3.zero;
-					platformOverride.enabled = true;	
-					originTracker.parent.position = hook.position;
-					originTracker.parent.rotation = hook.rotation;
-
-					localColliders = Mathf.Clamp(Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length, 1, 100);
-
-					isHooked = true;
-				}
+				hookChangeState = false;
+				hook.localPosition = Vector3.zero;
+				hook.eulerAngles = Vector3.zero;
+				originTracker.parent.position = hook.position;
+				originTracker.parent.rotation = hook.rotation;
+				localPlayer.SetVelocity(playerVelocity);
+				isHooked = false;
 			}
+			else
+			{
+				hookChangeState = true;
+				hook.localPosition = Vector3.zero;
+				hook.eulerAngles = Vector3.zero;
+				platformOverride.enabled = true;	
+				originTracker.parent.position = hook.position;
+				originTracker.parent.rotation = hook.rotation;
+				localColliders = Mathf.Clamp(Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length, 1, 100);
+				isHooked = true;
+			}		
 		}
 	}
 
@@ -159,7 +154,6 @@ namespace superbstingray
 				lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
 				platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
 			}
-
 		}
 		
 		public void LateUpdate() 
