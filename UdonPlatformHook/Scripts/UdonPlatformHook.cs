@@ -26,6 +26,9 @@ namespace superbstingray
 	[Tooltip("Distance below the Player before the Script hooks to Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
 	public float hookDistance = 0.75F;
 
+	[Tooltip("Will make the Player keep the Velocity of the Platform when they walk off it.")]
+	public bool inheritVelocity = true;
+
 	[Tooltip("Will partially reset Avatar Inverse Kinematics periodically when being moved by platforms to prevent Avatar IK drift / IK walk.")]
 	public bool reduceIKDrift = true;
 
@@ -41,13 +44,14 @@ namespace superbstingray
 	private Collider sceneCollider;
 	private Vector3 lastHookPosition;
 	private Vector3 lastHookRotation;
+	private Vector3 playerVelocity;
+	private Vector3 lastFramePos;	
 	private int unhookThreshold;
 	private int localColliders;
 	private int fixedFrame;
 	private int intUI;
 	private bool menuOpen;
 	private bool isHooked;
-
 
 	[FieldChangeCallback(nameof(_hookChangeStateCallback))]
 	private bool hookChangeState;
@@ -63,6 +67,8 @@ namespace superbstingray
 					hook.eulerAngles = Vector3.zero;
 					originTracker.parent.position = hook.position;
 					originTracker.parent.rotation = hook.rotation;
+					localPlayer.SetVelocity(playerVelocity);
+
 					isHooked = false;
 				}
 				else
@@ -74,8 +80,13 @@ namespace superbstingray
 					originTracker.parent.position = hook.position;
 					originTracker.parent.rotation = hook.rotation;
 
-					isHooked = true;
 					localColliders = Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length;
+					if (localColliders == 0)
+					{
+						localColliders++;
+					}
+
+					isHooked = true;
 				}
 			}
 		}
@@ -84,7 +95,6 @@ namespace superbstingray
 		public void Start() 
 		{
 			localPlayer = Networking.LocalPlayer;
-
 			playerTracker = transform.GetChild(0).GetChild(1);
 			originTracker = transform.GetChild(0).GetChild(0);
 			hook = transform.GetChild(0).GetChild(0).GetChild(0);
@@ -129,26 +139,31 @@ namespace superbstingray
 					}
 				}
 			}
+			if (isHooked && inheritVelocity)
+			{
+				playerVelocity = (((playerVelocity * 10F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 11F);
+				lastFramePos = localPlayer.GetPosition();
+			}
 		}
 
 		public void Update() 
 		{
 			if (isHooked) 
 			{
-				playerTracker.position = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position;
-				playerTracker.rotation = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).rotation;
+				playerTracker.SetPositionAndRotation(localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).rotation);
 			}
 
 			if (isHooked && menuOpen)
 			{
 				localPlayer.SetVelocity(Vector3.zero);
 			}
-				if (isHooked && reduceIKDrift)
-				{
-					lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
-					lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
-					platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
-				}
+			if (isHooked && reduceIKDrift)
+			{
+				lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
+				lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
+				platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
+			}
+
 		}
 		
 		public void LateUpdate() 
@@ -176,13 +191,12 @@ namespace superbstingray
 			
 			if (isHooked && !menuOpen)
 			{
-				originTracker.parent.position = hook.position;
-				originTracker.parent.rotation = hook.rotation;
+
+				originTracker.parent.SetPositionAndRotation(hook.position, hook.rotation);
 
 				if (Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length >= localColliders)
 				{
-					localPlayer.TeleportTo(playerTracker.position, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
-					localPlayer.TeleportTo(localPlayer.GetPosition(), playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
+					localPlayer.TeleportTo(playerTracker.position, playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
 				}
 			}
 		}
