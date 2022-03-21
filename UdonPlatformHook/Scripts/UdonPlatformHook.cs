@@ -16,8 +16,6 @@ namespace superbstingray
 	[HideInInspector]
 	public Transform originTracker;
 	[HideInInspector]
-	public Transform platformOffset;
-	[HideInInspector]
 	public BoxCollider platformOverride;
 
 	[Tooltip("Layers that the Player will move with.")]
@@ -42,8 +40,6 @@ namespace superbstingray
 	private RaycastHit hitInfo;
 	private Collider[] colliderArray;
 	private Collider sceneCollider;
-	private Vector3 lastHookPosition;
-	private Vector3 lastHookRotation;
 	private Vector3 playerVelocity;
 	private Vector3 lastFramePos;	
 	private int unhookThreshold;
@@ -89,7 +85,6 @@ namespace superbstingray
 			playerTracker = transform.GetChild(0).GetChild(1);
 			originTracker = transform.GetChild(0).GetChild(0);
 			hook = transform.GetChild(0).GetChild(0).GetChild(0);
-			platformOffset = transform.GetChild(0).GetChild(0).GetChild(0).GetChild(0);
 			platformOverride = transform.GetChild(1).GetComponent<BoxCollider>();
 			transform.position = Vector3.zero;
 			platformOverride.size = new Vector3(0.5F, 0.05F, 0.5F);
@@ -98,7 +93,12 @@ namespace superbstingray
 		}
 
 		public void FixedUpdate() 
-		{
+		{	
+			if (isHooked && inheritVelocity)
+			{
+				playerVelocity = (((playerVelocity * 10F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 11F);
+				lastFramePos = localPlayer.GetPosition();
+			}
 			if (!menuOpen)
 			{
 				Physics.SphereCast((localPlayer.GetPosition() + new Vector3(0F, .3F, 0F)), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, 10F, hookLayerMask.value);
@@ -117,11 +117,7 @@ namespace superbstingray
 				if (isHooked && reduceIKDrift)
 				{
 					fixedFrame++;
-					lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
-					lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
-					platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
-					if (!((Vector3.Distance(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position) > 0.1F)) 
-					&& ((Vector3.Distance(lastHookPosition, hook.position) + Vector3.Distance(lastHookRotation, hook.eulerAngles)) > 0.1F)) 
+					if ((Mathf.Abs(playerVelocity.x)) + (Mathf.Abs(playerVelocity.z)) > .1F && ((Mathf.Abs(localPlayer.GetVelocity().x)) + (Mathf.Abs(localPlayer.GetVelocity().z)) < .1F))
 					{
 						localPlayer.Immobilize((fixedFrame >= 160));
 						if ((fixedFrame > 160))
@@ -135,11 +131,6 @@ namespace superbstingray
 					}
 				}
 				#endif
-			}
-			if (isHooked && inheritVelocity)
-			{
-				playerVelocity = (((playerVelocity * 10F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 11F);
-				lastFramePos = localPlayer.GetPosition();
 			}
 		}
 
