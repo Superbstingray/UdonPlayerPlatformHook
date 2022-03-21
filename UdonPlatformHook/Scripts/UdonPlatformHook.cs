@@ -115,6 +115,9 @@ namespace superbstingray
 				if (isHooked && reduceIKDrift)
 				{
 					fixedFrame++;
+					lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
+					lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
+					platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
 					if (!((Vector3.Distance(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position) > 0.1F)) 
 					&& ((Vector3.Distance(lastHookPosition, hook.position) + Vector3.Distance(lastHookRotation, hook.eulerAngles)) > 0.1F)) 
 					{
@@ -147,12 +150,6 @@ namespace superbstingray
 			if (isHooked && menuOpen)
 			{
 				localPlayer.SetVelocity(Vector3.zero);
-			}
-			if (isHooked && reduceIKDrift)
-			{
-				lastHookPosition = Vector3.Lerp(lastHookPosition, hook.position, 0.025F);
-				lastHookRotation = Vector3.Lerp(lastHookRotation, hook.eulerAngles, 0.025F);
-				platformOffset.position = Vector3.Lerp(platformOffset.position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, 0.05F);
 			}
 		}
 		
