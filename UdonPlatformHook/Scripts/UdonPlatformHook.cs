@@ -94,7 +94,7 @@ namespace superbstingray
 
 		public void FixedUpdate() 
 		{	
-			if (isHooked && inheritVelocity)
+			if (isHooked || inheritVelocity)
 			{
 				playerVelocity = (((playerVelocity * 10F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 11F);
 				lastFramePos = localPlayer.GetPosition();
