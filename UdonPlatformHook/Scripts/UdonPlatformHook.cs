@@ -111,7 +111,9 @@ namespace superbstingray
 				else
 				{
 					unhookThreshold = 0;
-				}
+				} 
+
+				#if !UNITY_EDITOR
 				if (isHooked && reduceIKDrift)
 				{
 					fixedFrame++;
@@ -132,6 +134,7 @@ namespace superbstingray
 						localPlayer.Immobilize(false);
 					}
 				}
+				#endif
 			}
 			if (isHooked && inheritVelocity)
 			{
@@ -139,22 +142,11 @@ namespace superbstingray
 				lastFramePos = localPlayer.GetPosition();
 			}
 		}
-
-		public void Update() 
-		{
-			if (isHooked) 
-			{
-				playerTracker.SetPositionAndRotation(localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).rotation);
-			}
-
-			if (isHooked && menuOpen)
-			{
-				localPlayer.SetVelocity(Vector3.zero);
-			}
-		}
 		
 		public void LateUpdate() 
-		{
+		{ 
+		#if !UNITY_EDITOR
+
 			if (mainMenuPause || quickMenuPause)
 			{
 				intUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10F, 524288).Length;
@@ -175,10 +167,15 @@ namespace superbstingray
 					}
 				}
 			}
-			
+
+			if (isHooked && menuOpen)
+			{
+				localPlayer.SetVelocity(Vector3.zero);
+			}
+
 			if (isHooked && !menuOpen)
 			{
-
+				playerTracker.SetPositionAndRotation(localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).rotation);
 				originTracker.parent.SetPositionAndRotation(hook.position, hook.rotation);
 
 				if (Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length >= localColliders)
@@ -186,6 +183,18 @@ namespace superbstingray
 					localPlayer.TeleportTo(playerTracker.position, playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
 				}
 			}
+			#else
+			if (isHooked)
+			{
+				playerTracker.SetPositionAndRotation(localPlayer.GetPosition(), localPlayer.GetRotation());
+				originTracker.parent.SetPositionAndRotation(hook.position, hook.rotation);
+
+				if (Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length >= localColliders)
+				{
+					localPlayer.TeleportTo(playerTracker.position, playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
+				}
+			}
+			#endif
 		}
 
 		public void PostLateUpdate() 
@@ -203,7 +212,7 @@ namespace superbstingray
 			}
 			else
 			{
-				if (unhookThreshold < 10)
+				if (unhookThreshold < 10 && (localPlayer.IsPlayerGrounded()))
 				{
 					hook.parent = hitInfo.transform;
 					platformOverride.enabled = true;
