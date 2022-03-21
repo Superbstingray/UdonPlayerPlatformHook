@@ -142,10 +142,10 @@ namespace superbstingray
 				lastFramePos = localPlayer.GetPosition();
 			}
 		}
-		
+
 		public void LateUpdate() 
 		{ 
-		#if !UNITY_EDITOR
+			#if !UNITY_EDITOR
 
 			if (mainMenuPause || quickMenuPause)
 			{
@@ -195,10 +195,7 @@ namespace superbstingray
 				}
 			}
 			#endif
-		}
 
-		public void PostLateUpdate() 
-		{
 			if (!menuOpen && isHooked && !Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
 			{
 				unhookThreshold++;
