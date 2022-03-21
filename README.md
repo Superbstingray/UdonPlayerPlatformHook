@@ -21,7 +21,3 @@ Set your moving objects/platforms to layer 11(Environment) or a custom layer and
 Typically the player is unable to follow moving colliders automatically and will remain stationary, with this prefab the player will follow collider movement and rotation correctly.
 
 https://user-images.githubusercontent.com/74171114/130368388-7721e8c7-ec4a-403f-b4bc-e561a8ad06fb.mp4
-
-## Other
-
-Doesn't currently work with CyanEmu due to it not supporting origin tracking. Testing will need to be done in game.
