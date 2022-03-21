@@ -62,7 +62,10 @@ namespace superbstingray
 				hook.eulerAngles = Vector3.zero;
 				originTracker.parent.position = hook.position;
 				originTracker.parent.rotation = hook.rotation;
-				localPlayer.SetVelocity(playerVelocity);
+				if(inheritVelocity)
+				{
+					localPlayer.SetVelocity(playerVelocity);			
+				}
 				isHooked = false;
 			}
 			else
