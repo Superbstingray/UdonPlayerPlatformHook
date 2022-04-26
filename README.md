@@ -8,9 +8,9 @@
 
 > Behavior can be enabled or disabled based on layers.
 
-> Will move and rotate the player correctly with objects they stand on.
+> Will correctly move and rotate the player with objects they stand on.
 
-> Will teleport the player seamlessly relative to objects they stand on.
+> Players will seamlessly move with objects that get teleported.
 
 > Supports moving the player relative to objects that are changing scale.
  
