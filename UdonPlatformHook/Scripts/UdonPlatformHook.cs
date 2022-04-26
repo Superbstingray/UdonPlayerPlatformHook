@@ -127,8 +127,7 @@ namespace superbstingray
 			{
 				return;
 			}
-
-			// Average the last 10 frames of player global velocity.
+			// Average the last 10 frames of the players global velocity.
 			if (isHooked || inheritVelocity)
 			{
 				playerVelocity = (((playerVelocity * 10F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 11F);
@@ -141,12 +140,11 @@ namespace superbstingray
 				platformOverride.center = hitInfo.point;
 
 				// Spherecast downwards from the players position and add to the unhookTreshold if it misses a valid platform
-				// Otherwise reset the unhookTreshold back to 0
 				if	(!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
 				{
 					unhookThreshold++;
 				}
-				else
+				else // Otherwise reset the unhookTreshold back to 0
 				{
 					unhookThreshold = 0;
 				} 
@@ -182,7 +180,7 @@ namespace superbstingray
 
 			// Use OverlapSphere to count the number of InterntalUI colliders as a means to know if the menu is open or not
 			// the values are hardcoded and future VRC updates could break this.
-			if (mainMenuPause || quickMenuPause)
+			if (mainMenuPause || quickMenuPause && isHooked)
 			{
 				intUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10F, 524288).Length;
 				
@@ -242,24 +240,24 @@ namespace superbstingray
 			}
 			#endif
 
-			// Spherecast downwards from the players position and add to the unhookTreshold if it misses a valid platform
-			// Otherwise Hook to the valid platform if the Player is grounded.
+			// Spherecast downwards from the players position.
 			if (!menuOpen && isHooked && !Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3F, 0F), 0.25F, new Vector3(0F, -90F, 0F), out hitInfo, hookDistance + .3F, hookLayerMask.value))
 			{
+				// Add to the unhookTreshold if it misses a valid platform and unhook if unhookThreshold is greater than X.
 				unhookThreshold++;
-				if (unhookThreshold > 30)
+				if (unhookThreshold > 10)
 				{
 					hook.parent = originTracker;
 					SetProgramVariable("hookChangeState", false);
-
 					SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
 				}
 
 			}
-			else
+			else // Hook to the valid platform if the Player is grounded.
 			{
 				if (unhookThreshold < 10 && (localPlayer.IsPlayerGrounded()))
 				{
+					unhookThreshold = 0;
 					hook.parent = hitInfo.transform;
 					platformOverride.enabled = true;
 					SetProgramVariable("hookChangeState", true);
