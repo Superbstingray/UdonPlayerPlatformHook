@@ -4,13 +4,15 @@
 
 # UdonPlatformHook
 
+> Makes moving with colliders seamless.
+
 > Behavior can be enabled or disabled based on layers.
 
 > Will move and rotate the player correctly with objects they stand on.
 
 > Will teleport the player seamlessly relative to objects they stand on.
 
-> Supports moving relative to objects that are changing scale.
+> Supports moving the player relative to objects that are changing scale.
  
 ## About
 * Drag & Drop solution for making players correctly follow moving colliders in your scene when standing on them. Makes players functionally behave as if they were parented to the collider they stand on.
