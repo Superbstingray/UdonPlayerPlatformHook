@@ -104,6 +104,7 @@ namespace superbstingray
 			platformOverride = transform.GetChild(1).GetComponent<BoxCollider>();
 			transform.position = Vector3.zero;
 			platformOverride.size = new Vector3(0.5F, 0.05F, 0.5F);
+			lastFramePos = localPlayer.GetPosition();
 
 			// Will ovveride from using "Everything" as a layermask
 			// as it will interfere with the prefabs functionality.
