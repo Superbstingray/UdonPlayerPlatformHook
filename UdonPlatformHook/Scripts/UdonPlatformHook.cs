@@ -130,7 +130,7 @@ namespace superbstingray
 			// Average the last X frames of the players global velocity.
 			if (isHooked || inheritVelocity)
 			{
-				playerVelocity = (((playerVelocity * 4F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 5F);
+				playerVelocity = (((playerVelocity * 8F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 9F);
 				lastFramePos = localPlayer.GetPosition();
 			}
 			if (!menuOpen)
