@@ -13,10 +13,6 @@ namespace superbstingray
 	public Transform hook;
 	[HideInInspector]
 	public Transform playerTracker;
-	[HideInInspector]
-	public Transform originTracker;
-	[HideInInspector]
-	public BoxCollider platformOverride;
 
 	[Tooltip("Layers that the Player will move with.")]
 	public LayerMask hookLayerMask;
@@ -36,10 +32,13 @@ namespace superbstingray
 	[Tooltip("Detect if the Player has their Quick Menu open and stop moving them.")]
 	public bool quickMenuPause = false;
 
+
+	private Transform PlayerOffset;
 	private VRCPlayerApi localPlayer;
 	private RaycastHit hitInfo;
 	private Collider[] colliderArray;
 	private Collider sceneCollider;
+	private BoxCollider platformOverride;
 	private Vector3 playerVelocity;
 	private Vector3 lastFramePos;
 	private Vector3 hookOffsetPos;
@@ -62,8 +61,8 @@ namespace superbstingray
 				hookChangeState = false;
 				hook.localPosition = Vector3.zero;
 				hook.eulerAngles = Vector3.zero;
-				originTracker.parent.position = hook.position;
-				originTracker.parent.rotation = hook.rotation;
+				PlayerOffset.position = hook.position;
+				PlayerOffset.rotation = hook.rotation;
 
 				// Set the players velocity to their actual world space velocity.
 				if(inheritVelocity)
@@ -80,8 +79,8 @@ namespace superbstingray
 				hook.localPosition = Vector3.zero;
 				hook.eulerAngles = Vector3.zero;
 				platformOverride.enabled = true;	
-				originTracker.parent.position = hook.position;
-				originTracker.parent.rotation = hook.rotation;
+				PlayerOffset.position = hook.position;
+				PlayerOffset.rotation = hook.rotation;
 
 				// When hooking count the number of PlayerLocal colliders the player has
 				// as this will help us know if the Player has entered a station or not.
@@ -98,12 +97,13 @@ namespace superbstingray
 		{
 			// Set variables
 			localPlayer = Networking.LocalPlayer;
-			playerTracker = transform.GetChild(0).GetChild(1);
-			originTracker = transform.GetChild(0).GetChild(0);
-			hook = transform.GetChild(0).GetChild(0).GetChild(0);
-			platformOverride = transform.GetChild(1).GetComponent<BoxCollider>();
+			playerTracker = transform.GetChild(0).GetChild(0);
+			PlayerOffset = transform.GetChild(0);
+			hook = transform.GetChild(1);
+			platformOverride = transform.GetComponent<BoxCollider>();
 			transform.position = Vector3.zero;
 			platformOverride.size = new Vector3(0.5F, 0.05F, 0.5F);
+			lastFramePos = localPlayer.GetPosition();
 
 			// Will ovveride from using "Everything" as a layermask
 			// as it will interfere with the prefabs functionality.
@@ -127,10 +127,10 @@ namespace superbstingray
 			{
 				return;
 			}
-			// Average the last 10 frames of the players global velocity.
+			// Average the last X frames of the players global velocity.
 			if (isHooked || inheritVelocity)
 			{
-				playerVelocity = (((playerVelocity * 10F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 11F);
+				playerVelocity = (((playerVelocity * 4F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 5F);
 				lastFramePos = localPlayer.GetPosition();
 			}
 			if (!menuOpen)
@@ -213,7 +213,7 @@ namespace superbstingray
 			if (isHooked && !menuOpen)
 			{
 				playerTracker.SetPositionAndRotation(localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).rotation);
-				originTracker.parent.SetPositionAndRotation(hook.position, hook.rotation);
+				PlayerOffset.SetPositionAndRotation(hook.position, hook.rotation);
 
 				if (Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length >= localColliders)
 				{
@@ -229,7 +229,7 @@ namespace superbstingray
 			if (isHooked)
 			{
 				playerTracker.SetPositionAndRotation(localPlayer.GetPosition(), localPlayer.GetRotation());
-				originTracker.parent.SetPositionAndRotation(hook.position, hook.rotation);
+				PlayerOffset.SetPositionAndRotation(hook.position, hook.rotation);
 
 				if (Physics.OverlapSphere((localPlayer.GetPosition()), 1024F, 1024).Length >= localColliders)
 				{
@@ -247,7 +247,7 @@ namespace superbstingray
 				unhookThreshold++;
 				if (unhookThreshold > 10)
 				{
-					hook.parent = originTracker;
+					hook.parent = transform;
 					SetProgramVariable("hookChangeState", false);
 					SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
 				}
@@ -270,7 +270,7 @@ namespace superbstingray
 		// Reset prefab state and call unhook on Respawn.
 		public override void OnPlayerRespawn(VRCPlayerApi onPlayerRespawnPlayer) 
 		{
-			hook.parent = originTracker;
+			hook.parent = transform;
 			unhookThreshold = 35;
 			SetProgramVariable("hookChangeState", false);
 
