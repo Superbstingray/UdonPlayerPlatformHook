@@ -118,6 +118,7 @@ namespace superbstingray
 			{
 				SendCustomEvent("_IKLoop");
 			}
+			// Start collision Check loop
 			SendCustomEventDelayedSeconds("_SetIgnoreCollision", 2F);
 		}
 
@@ -130,7 +131,7 @@ namespace superbstingray
 			// Average the last X frames of the players global velocity.
 			if (isHooked || inheritVelocity)
 			{
-				playerVelocity = (((playerVelocity * 8F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 9F);
+				playerVelocity = (((playerVelocity * 6F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 7F);
 				lastFramePos = localPlayer.GetPosition();
 			}
 			if (!menuOpen)
@@ -223,9 +224,8 @@ namespace superbstingray
 			}
 			#else
 
-			// Editor Only duplicate funtion from above specifically for
-			// CyanEmu/ClientSim as they don't support Origin tracking.
-			// This falls back on using .GetPosition()
+			// Editor Only duplicate funtion from above specifically for CyanEmu/ClientSim as they don't support
+			// Origin tracking. This falls back on using .GetPosition()
 			if (isHooked)
 			{
 				playerTracker.SetPositionAndRotation(localPlayer.GetPosition(), localPlayer.GetRotation());
@@ -302,12 +302,11 @@ namespace superbstingray
 
 		}
 
-		// Typically the Players IK will drag behind and "IK walk" while being moved so this
-		// function is to try prevent that from occuring by setting VRCPlayerApi.Immobilize
-		// On the Player for 1 frame once every 2 seconds.
+		// Typically the Players IK will drag behind and "IK walk" while being moved so this function is to try
+		// prevent that from occuring by setting VRCPlayerApi.Immobilize every other frame while the player isn't moving.
 		public void _IKLoop() 
 		{
-			SendCustomEventDelayedSeconds("_IKLoop", 2F);
+			SendCustomEventDelayedFrames("_IKLoop", 2);
 
 			if (!Utilities.IsValid(localPlayer))
 			{
@@ -331,6 +330,10 @@ namespace superbstingray
 
 		public void _IKLoopEnd()
 		{
+			if (!Utilities.IsValid(localPlayer))
+			{
+				return;
+			}
 			localPlayer.Immobilize(false);
 		}
 
