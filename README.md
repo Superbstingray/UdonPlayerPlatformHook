@@ -18,7 +18,7 @@
 * Drag & Drop solution for making players correctly follow moving colliders in your scene when standing on them. Makes players functionally behave as if they were parented to the collider they stand on.
 ## How to use
 * Drag into root of your scene and set your moving objects/platforms to layer 11(Environment) or a custom layer and assign layers in the layer mask.
-* You only need one of these prefabs in your scene.
+* You only need to add one of these prefabs to your scene.
 
 ## Example
 Typically the player is unable to follow moving colliders automatically and will remain stationary, with this prefab the player will follow collider movement and Y axis rotation correctly.
