@@ -11,8 +11,6 @@
 > Will correctly move and rotate the player with objects they stand on.
 
 > Players will seamlessly move with objects that get teleported.
-
-> Supports moving the player relative to objects that are changing scale.
  
 ## About
 * Drag & Drop solution for making players correctly follow moving colliders in your scene when standing on them. Makes players functionally behave as if they were parented to the collider they stand on.
