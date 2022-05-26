@@ -21,7 +21,7 @@
 * You only need one of these prefabs in your scene.
 
 ## Example
-Typically the player is unable to follow moving colliders automatically and will remain stationary, with this prefab the player will follow collider movement and rotation correctly.
+Typically the player is unable to follow moving colliders automatically and will remain stationary, with this prefab the player will follow collider movement and Y axis rotation correctly.
 
 https://user-images.githubusercontent.com/74171114/130368388-7721e8c7-ec4a-403f-b4bc-e561a8ad06fb.mp4
 
