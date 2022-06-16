@@ -9,10 +9,6 @@ namespace superbstingray
 	[UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
 	public class UdonPlatformHook : UdonSharp.UdonSharpBehaviour
 {
-	[HideInInspector]
-	public Transform hook;
-	[HideInInspector]
-	public Transform playerTracker;
 
 	[Tooltip("Layers that the Player will move with.")]
 	public LayerMask hookLayerMask;
@@ -32,22 +28,17 @@ namespace superbstingray
 	[Tooltip("Detect if the Player has their Quick Menu open and stop moving them.")]
 	public bool quickMenuPause = false;
 
-
-	private Transform PlayerOffset;
 	private VRCPlayerApi localPlayer;
 	private RaycastHit hitInfo;
 	private Collider[] colliderArray;
 	private Collider sceneCollider;
 	private BoxCollider platformOverride;
-	private Vector3 playerVelocity;
-	private Vector3 lastFramePos;
-	private Vector3 hookOffsetPos;
-	private Vector3 hookLastPos;	
-	private int unhookThreshold;
-	private int localColliders;
-	private int intUI;
-	private bool menuOpen;
-	private bool isHooked;
+	private Vector3 playerVelocity, playerVelocityLast, hookLastPos, hookOffsetPos, lastFramePos;	
+	private Transform PlayerOffset, playerTracker, hook;
+	private Quaternion headRotation;
+	private int unhookThreshold, localColliders, intUI, fixedUpdateLimit, shouldSkip;
+	private bool isHooked, menuOpen;
+	private float InputMoveH, InputMoveV;
 
 	[FieldChangeCallback(nameof(_hookChangeStateCallback))]
 	private bool hookChangeState;
@@ -113,27 +104,24 @@ namespace superbstingray
 				hookLayerMask.value = -263369;
 			}
 
-			// Start IKLoop if reduceIKDrift.
-			if (reduceIKDrift)
-			{
-				SendCustomEvent("_IKLoop");
-			}
 			// Start collision Check loop
 			SendCustomEventDelayedSeconds("_SetIgnoreCollision", 2F);
 		}
 
 		public void FixedUpdate() 
 		{	
-			if (!Utilities.IsValid(localPlayer))
+			if (!VRC.SDKBase.Utilities.IsValid(localPlayer))
 			{
 				return;
 			}
 			// Average the last X frames of the players global velocity.
 			if (isHooked || inheritVelocity)
 			{
-				playerVelocity = (((playerVelocity * 6F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 7F);
+				playerVelocityLast = playerVelocity;
+				playerVelocity = (((playerVelocity * 3F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 4F);
 				lastFramePos = localPlayer.GetPosition();
 			}
+
 			if (!menuOpen)
 			{
 				// Spherecast downwards from the players position to find a point where the override platform should be.
@@ -149,14 +137,12 @@ namespace superbstingray
 				{
 					unhookThreshold = 0;
 				} 
-
 			}
-
 		}
 
 		public void Update()
 		{
-			if (!Utilities.IsValid(localPlayer))
+			if (!VRC.SDKBase.Utilities.IsValid(localPlayer))
 			{
 				return;
 			}
@@ -167,12 +153,11 @@ namespace superbstingray
 				hook.position = localPlayer.GetPosition();
 				hookOffsetPos = hook.position - hookLastPos;
 			}
-
 		}
 
 		public void LateUpdate() 
 		{
-			if (!Utilities.IsValid(localPlayer))
+			if (!VRC.SDKBase.Utilities.IsValid(localPlayer))
 			{
 				return;
 			}
@@ -199,9 +184,18 @@ namespace superbstingray
 					{
 						menuOpen = false;
 					}
-
 				}
 
+				// Typically the Players IK will drag behind and "IK walk" while being moved so this function is to
+				// prevent that from occuring by Immobilizing the player when they aren't moving.
+				if(reduceIKDrift)
+				{
+					headRotation = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).rotation;
+					localPlayer.Immobilize(!(((InputMoveH * 0.1F + InputMoveV) != 0F))
+					&& (Mathf.Abs(playerVelocity.x)) + (Mathf.Abs(playerVelocity.z)) > .1F
+					&& ((Mathf.Abs(localPlayer.GetVelocity().x)) + (Mathf.Abs(localPlayer.GetVelocity().z)) < .01F)
+					&& (Quaternion.Angle(new Quaternion(0F, headRotation.y, 0F, headRotation.w).normalized, localPlayer.GetRotation()) < 90F));
+				}
 			}
 
 			if (isHooked && menuOpen)
@@ -220,7 +214,6 @@ namespace superbstingray
 				{
 					localPlayer.TeleportTo(playerTracker.position - hookOffsetPos, playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignRoomWithSpawnPoint, true);
 				}
-
 			}
 			#else
 
@@ -236,7 +229,6 @@ namespace superbstingray
 					localPlayer.TeleportTo(playerTracker.position - hookOffsetPos, playerTracker.rotation, VRC_SceneDescriptor.SpawnOrientation.AlignPlayerWithSpawnPoint, true);
 					hookOffsetPos = Vector3.zero;
 				}
-
 			}
 			#endif
 
@@ -251,7 +243,6 @@ namespace superbstingray
 					SetProgramVariable("hookChangeState", false);
 					SendCustomEventDelayedSeconds("_OverrideOff", 0.5F);
 				}
-
 			}
 			else // Hook to the valid platform if the Player is grounded.
 			{
@@ -262,9 +253,16 @@ namespace superbstingray
 					platformOverride.enabled = true;
 					SetProgramVariable("hookChangeState", true);
 				}
-
 			}
+		}
 
+		public override void InputMoveVertical(float Value, VRC.Udon.Common.UdonInputEventArgs InputMoveVerticalArgs)
+		{
+			InputMoveV = InputMoveVerticalArgs.floatValue;
+		}
+		public override void InputMoveHorizontal(float Value, VRC.Udon.Common.UdonInputEventArgs InputMoveHorizontalArgs)
+		{
+			InputMoveH = InputMoveHorizontalArgs.floatValue;
 		}
 
 		// Reset prefab state and call unhook on Respawn.
@@ -280,7 +278,6 @@ namespace superbstingray
 			{
 				localPlayer.Immobilize(false);
 			}
-
 		}
 
 		// The prefab uses a proxy collider to prevent the player controller from interacting weirdly with moving world
@@ -293,48 +290,11 @@ namespace superbstingray
 			for (int i = 0; (i < colliderArray.Length); i = (i + 1))
 			{
 				sceneCollider = colliderArray[i];
-				if (Utilities.IsValid(sceneCollider))
+				if (VRC.SDKBase.Utilities.IsValid(sceneCollider))
 				{
 					Physics.IgnoreCollision(sceneCollider, platformOverride);
 				}
-
 			}
-
-		}
-
-		// Typically the Players IK will drag behind and "IK walk" while being moved so this function is to try
-		// prevent that from occuring by setting VRCPlayerApi.Immobilize every other frame while the player isn't moving.
-		public void _IKLoop() 
-		{
-			SendCustomEventDelayedFrames("_IKLoop", 2);
-
-			if (!Utilities.IsValid(localPlayer))
-			{
-				return;
-			}
-
-			#if !UNITY_EDITOR
-			if (isHooked && reduceIKDrift)
-			{
-				// Only execute this function if the players global velocity is greater
-				// than .1 and local velocity relative to the platform is less than .1 
-				if ((Mathf.Abs(playerVelocity.x)) + (Mathf.Abs(playerVelocity.z)) > .1F && ((Mathf.Abs(localPlayer.GetVelocity().x)) + (Mathf.Abs(localPlayer.GetVelocity().z)) < .1F))
-				{
-					localPlayer.Immobilize(true);
-				}
-
-			}
-			SendCustomEventDelayedFrames("_IKLoopEnd", 1);
-			#endif
-		}
-
-		public void _IKLoopEnd()
-		{
-			if (!Utilities.IsValid(localPlayer))
-			{
-				return;
-			}
-			localPlayer.Immobilize(false);
 		}
 
 		// On Unhook disable override collider and force Immobilize state just in case.
@@ -349,9 +309,6 @@ namespace superbstingray
 			{
 				localPlayer.Immobilize(false);
 			}
-
 		}
-
 	}
-
 }
