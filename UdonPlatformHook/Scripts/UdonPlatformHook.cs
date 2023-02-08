@@ -4,7 +4,7 @@ using VRC.SDKBase;
 using VRC.SDK3.Components;
 using UdonSharp;
 
-namespace superbstingray
+namespace Superbstingray
 {
 	[UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
 	public class UdonPlatformHook : UdonSharp.UdonSharpBehaviour
@@ -13,13 +13,13 @@ namespace superbstingray
 	[Tooltip("Layers that the Player will move with.")]
 	public LayerMask hookLayerMask;
 
-	[Tooltip("Distance below the Player before the Script hooks to Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
+	[Tooltip("Distance below the Player before the Script Unhooks from Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
 	public float hookDistance = 0.75F;
 
 	[Tooltip("Will make the Player keep the Velocity of the Platform when they walk off it.")]
 	public bool inheritVelocity = true;
 
-	[Tooltip("Will partially reset Avatar Inverse Kinematics periodically when being moved by platforms to prevent Avatar IK drift / IK walk.")]
+	[Tooltip("Will Immobilize(true) players when standing still on moving platforms to prevent Avatars from having IK drift / IK walk.")]
 	public bool reduceIKDrift = true;
 
 	[Tooltip("Detect if the Player has their Main Menu open and stop moving them.")]
@@ -33,10 +33,10 @@ namespace superbstingray
 	private Collider[] colliderArray;
 	private Collider sceneCollider;
 	private BoxCollider platformOverride;
-	private Vector3 playerVelocity, playerVelocityLast, hookLastPos, hookOffsetPos, lastFramePos;	
+	private Vector3 playerVelocity, hookLastPos, hookOffsetPos, lastFramePos;	
 	private Transform PlayerOffset, playerTracker, hook;
 	private Quaternion headRotation;
-	private int unhookThreshold, localColliders, intUI, fixedUpdateLimit, shouldSkip;
+	private int unhookThreshold, localColliders, intUI;
 	private bool isHooked, menuOpen;
 	private float InputMoveH, InputMoveV;
 
@@ -117,7 +117,6 @@ namespace superbstingray
 			// Average the last X frames of the players global velocity.
 			if (isHooked || inheritVelocity)
 			{
-				playerVelocityLast = playerVelocity;
 				playerVelocity = (((playerVelocity * 3F) + ((localPlayer.GetPosition() - lastFramePos) / Time.deltaTime)) / 4F);
 				lastFramePos = localPlayer.GetPosition();
 			}
@@ -166,35 +165,24 @@ namespace superbstingray
 
 			// Use OverlapSphere to count the number of InterntalUI colliders as a means to know if the menu is open or not
 			// the values are hardcoded and future VRC updates could break this.
-			if (mainMenuPause || quickMenuPause && isHooked)
+			if (isHooked)
 			{
 				intUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10F, 524288).Length;
 				
-				if (mainMenuPause && intUI == 3 || intUI == 12 || intUI == 13) 
+				if (mainMenuPause && (intUI == 8 || intUI == 9 || intUI == 10))
 				{
-					menuOpen = true; 
+					menuOpen = true;
 				}
 				else
 				{
-					if (quickMenuPause && intUI == 8 || intUI == 17 || intUI == 18 || intUI == 19 || intUI == 20) 
+					if (quickMenuPause && (intUI == 11 || intUI == 12))
 					{
-						menuOpen = true; 
+						menuOpen = true;
 					}
 					else
 					{
 						menuOpen = false;
 					}
-				}
-
-				// Typically the Players IK will drag behind and "IK walk" while being moved so this function is to
-				// prevent that from occuring by Immobilizing the player when they aren't moving.
-				if(reduceIKDrift)
-				{
-					headRotation = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).rotation;
-					localPlayer.Immobilize(!(((InputMoveH * 0.1F + InputMoveV) != 0F))
-					&& (Mathf.Abs(playerVelocity.x)) + (Mathf.Abs(playerVelocity.z)) > .1F
-					&& ((Mathf.Abs(localPlayer.GetVelocity().x)) + (Mathf.Abs(localPlayer.GetVelocity().z)) < .01F)
-					&& (Quaternion.Angle(new Quaternion(0F, headRotation.y, 0F, headRotation.w).normalized, localPlayer.GetRotation()) < 90F));
 				}
 			}
 
@@ -254,6 +242,17 @@ namespace superbstingray
 					SetProgramVariable("hookChangeState", true);
 				}
 			}
+
+			// Typically the Players IK will drag behind and "IK walk" while being moved so this function is to prevent that from
+			// occuring by Immobilizing the player when they are hooked to a platform and aren't moving relative to the platform.
+			if(reduceIKDrift)
+			{
+				headRotation = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).rotation;
+				localPlayer.Immobilize(!(((InputMoveH * 0.1F + InputMoveV) != 0F))
+				&& (Mathf.Abs(playerVelocity.x)) + (Mathf.Abs(playerVelocity.z)) > .1F
+				&& ((Mathf.Abs(localPlayer.GetVelocity().x)) + (Mathf.Abs(localPlayer.GetVelocity().z)) < .01F)
+				&& (Quaternion.Angle(new Quaternion(0F, headRotation.y, 0F, headRotation.w).normalized, localPlayer.GetRotation()) < 90F));
+			}
 		}
 
 		public override void InputMoveVertical(float Value, VRC.Udon.Common.UdonInputEventArgs InputMoveVerticalArgs)
@@ -263,6 +262,13 @@ namespace superbstingray
 		public override void InputMoveHorizontal(float Value, VRC.Udon.Common.UdonInputEventArgs InputMoveHorizontalArgs)
 		{
 			InputMoveH = InputMoveHorizontalArgs.floatValue;
+		}
+		public void InputJump(bool outputBool, VRC.Udon.Common.UdonInputEventArgs inputJumpArgs)
+		{
+			if(isHooked)
+			{
+				localPlayer.Immobilize(false);
+			}
 		}
 
 		// Reset prefab state and call unhook on Respawn.
