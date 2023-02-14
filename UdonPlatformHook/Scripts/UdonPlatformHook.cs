@@ -91,7 +91,7 @@ namespace Superbstingray
 
 			if (isHooked && inheritVelocity) // #Average the last X frames of the players global velocity.
 			{
-				playerVelocity = (playerVelocity * 3F + (localPlayer.GetPosition() - lastFramePos) / Time.deltaTime) / 4F;
+				playerVelocity = Vector3.ClampMagnitude((playerVelocity * 3f + (localPlayer.GetPosition() - lastFramePos) / Time.deltaTime) / 4f, 100f);
 				lastFramePos = localPlayer.GetPosition();
 			}
 
