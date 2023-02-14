@@ -122,16 +122,16 @@ namespace Superbstingray
 
 #if !UNITY_EDITOR
 
+			if (isHooked) // Count the number of InterntalUI colliders as a means to know if the menu is open or not. ?#MENUOPEN
+			{
+				intUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10f, 524288).Length;
+				menuOpen = (mainMenuPause && (intUI == 8 || intUI == 9 || intUI == 10)) || (quickMenuPause && (intUI == 11 || intUI == 12));
+			}
 			if (isHooked && !menuOpen) // Move the parented hook to the Players position
 			{
 				hookLastPos = hook.position;
 				hook.position = localPlayer.GetPosition();
 				hookOffsetPos = hook.position - hookLastPos;
-			}
-			if (isHooked) // Count the number of InterntalUI colliders as a means to know if the menu is open or not. ?#MENUOPEN
-			{
-				intUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10f, 524288).Length;
-				menuOpen = (mainMenuPause && (intUI == 8 || intUI == 9 || intUI == 10)) || (quickMenuPause && (intUI == 11 || intUI == 12));
 			}
 			if (isHooked && menuOpen) { localPlayer.SetVelocity(Vector3.zero); } // Override Player Velocity to make it easier to use their menu.
 
@@ -163,7 +163,7 @@ namespace Superbstingray
 #endif
 			// Typically the Players IK will drag behind and "IK walk" while being moved so this function is to prevent that from
 			// occuring by Immobilizing the player when they are hooked to a platform and aren't moving relative to the platform.
-			if(reduceIKDrift) //?#reduceIKDrift
+			if(reduceIKDrift && isHooked) //?#reduceIKDrift
 			{
 				headRotation = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).rotation;
 				localPlayer.Immobilize(!(InputMoveH * 0.1f + InputMoveV != 0f)
