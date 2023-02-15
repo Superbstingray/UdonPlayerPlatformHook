@@ -1,8 +1,6 @@
 
 
-
-
-# UdonPlatformHook
+# UdonPlatformHook [![GitHub](https://img.shields.io/github/license/Superbstingray/UdonPlayerPlatformHook?color=blue&label=License&style=flat)](https://github.com/Superbstingray/UdonPlayerPlatformHook/blob/main/LICENSE) [![Releases](https://img.shields.io/github/v/tag/Superbstingray/UdonPlayerPlatformHook?color=blue&label=Download&sort=semver&style=flat)](https://github.com/Superbstingray/UdonPlayerPlatformHook/releases/latest)
 
 > Makes moving with colliders seamless.
 
@@ -11,7 +9,7 @@
 > Will correctly move and rotate the player with objects they stand on.
 
 > Players will seamlessly move with objects that get teleported.
- 
+
 ## About
 * Drag & Drop solution for making players correctly follow moving colliders in your scene when standing on them. Makes players functionally behave as if they were parented to the collider they stand on.
 ## How to use
