@@ -1,6 +1,6 @@
 
 
-# UdonPlatformHook [![GitHub](https://img.shields.io/github/license/Superbstingray/UdonPlayerPlatformHook?color=blue&label=License&style=flat)](https://github.com/Superbstingray/UdonPlayerPlatformHook/blob/main/LICENSE) [![Releases](https://img.shields.io/github/v/tag/Superbstingray/UdonPlayerPlatformHook?color=blue&label=Download&sort=semver&style=flat)](https://github.com/Superbstingray/UdonPlayerPlatformHook/releases/latest)
+# UdonPlatformHook [![Releases](https://img.shields.io/github/v/tag/Superbstingray/UdonPlayerPlatformHook?color=blue&label=Download&sort=semver&style=flat)](https://github.com/Superbstingray/UdonPlayerPlatformHook/releases/latest)
 
 > Makes moving with colliders seamless.
 
