@@ -98,12 +98,12 @@ namespace Superbstingray
 			if (!menuOpen)
 			{
 				// #OverrideSpherecast. Set position of override collider.
-				Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3f, 0f), 0.25f, new Vector3(0F, -1f, 0f), out hitInfo, 10f, hookLayerMask.value);
+				Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3f, 0f), 0.25f, Vector3.down, out hitInfo, 10f, hookLayerMask.value);
 				platformOverride.center = hitInfo.point;
 
 				// #FixedUpdate_Spherecast. Check for valid platforms.
 				// Add to the unhookThreshold if it misses a valid platform and unhook if unhookThreshold is greater than X.
-				if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0f, .3f, 0f), 0.25f, new Vector3(0f, -1f, 0f), out hitInfo, hookDistance + .3f, hookLayerMask.value))
+				if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0f, .3f, 0f), 0.25f, Vector3.down, out hitInfo, hookDistance + .3f, hookLayerMask.value))
 				{
 					unhookThreshold++;
 					if (unhookThreshold > 10 && isHooked)
@@ -172,7 +172,7 @@ namespace Superbstingray
 				&& Quaternion.Angle(new Quaternion(0f, headRotation.y, 0f, headRotation.w).normalized, localPlayer.GetRotation()) < 90f);
 			}
 			// #LateUpdate_Spherecast. Check for valid platforms.
-			if (Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0f, .3f, 0f), 0.25f, new Vector3(0f, -1f, 0f), out hitInfo, hookDistance + .3f, hookLayerMask.value))
+			if (Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0f, .3f, 0f), 0.25f, Vector3.down, out hitInfo, hookDistance + .3f, hookLayerMask.value))
 			{
 				unhookThreshold = 0;
 				if (unhookThreshold < 10 && (localPlayer.IsPlayerGrounded())) // Hook to the valid platform if the Player is grounded.
