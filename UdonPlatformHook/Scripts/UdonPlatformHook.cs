@@ -192,7 +192,7 @@ namespace Superbstingray
 		{
 			InputMoveH = InputMoveHorizontalArgs.floatValue;
 		}
-		public void InputJump(bool outputJumpBool, UdonInputEventArgs inputJumpArgs)
+		public override void InputJump(bool outputJumpBool, UdonInputEventArgs inputJumpArgs)
 		{
 			if (reduceIKDrift) { localPlayer.Immobilize(false); }
 		}
