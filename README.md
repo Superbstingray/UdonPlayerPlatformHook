@@ -1,5 +1,5 @@
 
-# UdonPlatformHook  [![Licence](https://img.shields.io/github/license/Superbstingray/UdonPlayerPlatformHook?color=blue&label=License)](https://github.com/Superbstingray/UdonPlayerPlatformHook/blob/main/LICENSE) [![Releases](https://img.shields.io/github/v/tag/Superbstingray/UdonPlayerPlatformHook?color=blue&label=Download)](https://github.com/Superbstingray/UdonPlayerPlatformHook/releases/latest)
+# UdonPlatformHook  [![Licence](https://img.shields.io/github/license/Superbstingray/UdonPlayerPlatformHook?color=blue&label=License)](https://github.com/Superbstingray/UdonPlayerPlatformHook/blob/main/LICENSE) [![Releases](https://img.shields.io/github/v/tag/Superbstingray/UdonPlayerPlatformHook?color=blue&label=Download)](https://github.com/Superbstingray/UdonPlayerPlatformHook/releases/download/v1.37/UdonPlatformHook.v1.37.unitypackage)
 
  Drag and Drop solution for making Players correctly follow moving colliders in the scene when standing on them. The prefab makes Players functionally behave as if they were parented to any collider they stand on.
 ## How to use
