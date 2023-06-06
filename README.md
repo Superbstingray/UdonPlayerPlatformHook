@@ -25,6 +25,11 @@ Overview of script component:
 
 ![UPHUdon](https://user-images.githubusercontent.com/74171114/165277190-5be33308-f2f3-43b6-a14c-c1dc019797b1.png)
 
+## Example World
+
+Basic example setup can be found in this VRChat world:
+https://vrchat.com/home/world/wrld_6eaf7a85-ffcb-4765-a9b6-c7e435802079
+
 ## Requirements
  
  * [VRCSDK3-Udon](https://vrchat.com/home/download) v.2022.02.16.19.13+
