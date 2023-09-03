@@ -69,6 +69,7 @@ namespace Superbstingray
 		public void Start() // Set Prefab Variables 
 		{
 			localPlayer = Networking.LocalPlayer;
+			if (!VRC.SDKBase.Utilities.IsValid(localPlayer)) { return; }
 			lastFramePos = localPlayer.GetPosition();
 			playerTracker = transform.GetChild(0).GetChild(0);
 			PlayerOffset = transform.GetChild(0);
