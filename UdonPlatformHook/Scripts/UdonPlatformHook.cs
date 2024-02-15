@@ -126,7 +126,7 @@ namespace Superbstingray
 			if (isHooked) // Count the number of InterntalUI colliders as a means to know if the menu is open or not. ?#MENUOPEN
 			{
 				intUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10f, 524288).Length;
-				menuOpen = (mainMenuPause && (intUI == 8 || intUI == 9 || intUI == 10)) || (quickMenuPause && (intUI == 11 || intUI == 12));
+				menuOpen = (mainMenuPause && (intUI >= 7 && intUI <= 14)) || (quickMenuPause && (intUI >= 15 && intUI <= 19));
 			}
 			if (isHooked && !menuOpen) // Move the parented hook to the Players position
 			{
