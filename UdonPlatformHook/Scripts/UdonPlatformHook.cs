@@ -1,9 +1,9 @@
 
 using UnityEngine;
 using VRC.SDKBase;
-using VRC.SDK3.Components;
 using VRC.Udon.Common;
 using UdonSharp;
+using VRC.Udon.Wrapper.Modules;
 
 namespace Superbstingray
 {
@@ -16,16 +16,16 @@ namespace Superbstingray
 	[Tooltip("Vertical distance between the Player and Platform before the Script Unhooks from Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
 	public float hookDistance = 0.75F;
 
-	[Tooltip("Will make the Player keep their Velocity + the Platforms Velocity when they walk off of it.")]
+	[Tooltip("Will make the Player keep their Velocity + the Platforms Velocity when they detach from it.")]
 	public bool inheritVelocity = true;
 
 	[Tooltip("Will Immobilize(true) players when standing still on moving platforms to prevent Avatars from having IK drift / IK walk.")]
 	public bool reduceIKDrift = true;
 
-	[Tooltip("Detect if the Player has their Main Menu open and stop moving them.")]
+	[Tooltip("Try Detect if the Player has their Main Menu open and stop moving them. Will help with menu interactions.")]
 	public bool mainMenuPause = true;
 
-	[Tooltip("Detect if the Player has their Quick Menu open and stop moving them.")]
+	[Tooltip("Try Detect if the Player has their Quick Menu open and stop moving them. Will help with menu interactions.")]
 	public bool quickMenuPause = false;
 
 	BoxCollider platformOverride;
@@ -46,7 +46,7 @@ namespace Superbstingray
 	bool isHookedCallback
 	{	set
 		{	isHooked = value;
-			if (isHooked) // #isHooked=true functions
+			if (isHooked) // isHooked=true functions
 			{
 				hook.localPosition = Vector3.zero; hook.eulerAngles = Vector3.zero;
 				platformOverride.enabled = true;	
@@ -56,41 +56,38 @@ namespace Superbstingray
 				// as this will help us know when the Player enters a station.
 				localColliders = Mathf.Clamp(Physics.OverlapSphere((localPlayer.GetPosition()), 1024f, 1024).Length, 1, 100);
 			}
-			else // #isHooked=false functions
+			else // isHooked=false functions
 			{
 				if(inheritVelocity) { localPlayer.SetVelocity(playerVelocity); } // Sets the players velocity to their actual worldspace velocity when they Unhook.
 
-				hook.localPosition = Vector3.zero; hook.eulerAngles = Vector3.zero;
+				OverridesOff();
+                hook.localPosition = Vector3.zero; hook.eulerAngles = Vector3.zero;
 				PlayerOffset.SetPositionAndRotation(hook.position, hook.rotation);
 			}	
 		}
 	}
 
-		public void Start() // Set Prefab Variables 
-		{
-			localPlayer = Networking.LocalPlayer;
-			if (!VRC.SDKBase.Utilities.IsValid(localPlayer)) { return; }
-			lastFramePos = localPlayer.GetPosition();
-			playerTracker = transform.GetChild(0).GetChild(0);
-			PlayerOffset = transform.GetChild(0);
-			hook = transform.GetChild(1);
-			platformOverride = transform.GetComponent<BoxCollider>();
-			platformOverride.size = new Vector3(0.5f, 0.05f, 0.5f);
-			transform.position = Vector3.zero;
+        void Start()
+        {
+            InitializeVariables();
+            IgnoreSceneCollision();
+        }
 
-			_IgnoreSceneCollision(); // Start collision Check loop
+        void FixedUpdate()
+        {
+            FixedUpdateFunctions();
+        }
 
-			if (hookLayerMask.value == -1) // Override from using "Everything" as a layermask to prevent interference with the prefabs functionality.
-			{
-				hookLayerMask.value = -263369;
-			}
-		}
+        void LateUpdate()
+        {
+            LateUpdateFunctions();
+        }
 
-		public void FixedUpdate() 
+        void FixedUpdateFunctions() 
 		{	
 			if (!VRC.SDKBase.Utilities.IsValid(localPlayer)) { return; }
 
-			if (isHooked && inheritVelocity) // #Average the last X frames of the players global velocity.
+			if (isHooked && inheritVelocity) // Average the last X frames of the players global velocity.
 			{
 				playerVelocity = Vector3.ClampMagnitude((playerVelocity * 3f + (localPlayer.GetPosition() - lastFramePos) / Time.deltaTime) / 4f, 100f);
 				lastFramePos = localPlayer.GetPosition();
@@ -98,11 +95,11 @@ namespace Superbstingray
 
 			if (!menuOpen)
 			{
-				// #OverrideSpherecast. Set position of override collider.
+				// Override_Spherecast. Set position of override collider.
 				Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3f, 0f), 0.25f, Vector3.down, out hitInfo, 10f, hookLayerMask.value);
 				platformOverride.center = hitInfo.point;
 
-				// #FixedUpdate_Spherecast. Check for valid platforms.
+				// FixedUpdate_Spherecast. Check for valid platforms.
 				// Add to the unhookThreshold if it misses a valid platform and unhook if unhookThreshold is greater than X.
 				if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0f, .3f, 0f), 0.25f, Vector3.down, out hitInfo, hookDistance + .3f, hookLayerMask.value))
 				{
@@ -117,15 +114,13 @@ namespace Superbstingray
 			}
 		}
 
-		public void LateUpdate() 
+		void LateUpdateFunctions() 
 		{
 			if (!VRC.SDKBase.Utilities.IsValid(localPlayer)) { return; }
-
 #if !UNITY_EDITOR
-
-			if (isHooked) // Count the number of InterntalUI colliders as a means to know if the menu is open or not. ?#MENUOPEN
+            if (isHooked) // Count the number of InterntalUI colliders as a means to know if the menu is open or not.
 			{
-				intUI = Physics.OverlapSphere(localPlayer.GetPosition(), 10f, 524288).Length;
+				intUI = Physics.OverlapSphereNonAlloc(localPlayer.GetPosition(), 10f, colliderArray, 524288);
 				menuOpen = (mainMenuPause && (intUI >= 7 && intUI <= 14)) || (quickMenuPause && (intUI >= 15 && intUI <= 19));
 			}
 			if (isHooked && !menuOpen) // Move the parented hook to the Players position
@@ -137,7 +132,7 @@ namespace Superbstingray
 			if (isHooked && menuOpen) { localPlayer.SetVelocity(Vector3.zero); } // Override Player Velocity to make it easier to use their menu.
 
 			// Teleport the player to the new offset position only if the players PlayerLocal collider count
-			// hasn't gone down as then we should assume that means they have entered a station.
+			// didn't decrease otherwise assume the player entered a station.
 			if (isHooked && !menuOpen)
 			{
 				playerTracker.SetPositionAndRotation(localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).position, localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin).rotation);
@@ -149,8 +144,8 @@ namespace Superbstingray
 				}
 			}
 #else
-			// Editor Only duplicate funtion from above specifically for CyanEmu/ClientSim as they don't properly support Origin tracking.
-			if (isHooked)
+            // "EditorOnly" duplicate funtion from above specifically for CyanEmu/ClientSim as Origin tracking does not behave the same in editor as in client.
+            if (isHooked)
 			{
 				playerTracker.SetPositionAndRotation(localPlayer.GetPosition(), localPlayer.GetRotation());
 				PlayerOffset.SetPositionAndRotation(hook.position, hook.rotation);
@@ -162,9 +157,10 @@ namespace Superbstingray
 				}
 			}
 #endif
-			// Typically the Players IK will drag behind and "IK walk" while being moved so this function is to prevent that from
-			// occuring by Immobilizing the player when they are hooked to a platform and aren't moving relative to the platform.
-			if(reduceIKDrift && isHooked) //?#reduceIKDrift
+			// Players in Desktop or 3 Point tracking will have their Inverse Kinematics drag behind and "IK Walk" while being moved when they aren't intentionally locomoting.
+			// This function is to prevent that from occuring by Immobilizing the player when they are hooked to a platform and aren't moving relative to the platform.
+			// This is scuffed and I should optimize it.
+			if(reduceIKDrift && isHooked)
 			{
 				headRotation = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).rotation;
 				localPlayer.Immobilize(!(InputMoveH * 0.1f + InputMoveV != 0f)
@@ -172,7 +168,7 @@ namespace Superbstingray
 				&& Mathf.Abs(localPlayer.GetVelocity().x) + Mathf.Abs(localPlayer.GetVelocity().z) < .01f
 				&& Quaternion.Angle(new Quaternion(0f, headRotation.y, 0f, headRotation.w).normalized, localPlayer.GetRotation()) < 90f);
 			}
-			// #LateUpdate_Spherecast. Check for valid platforms.
+			// LateUpdate_Spherecast. Check for valid platforms.
 			if (Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0f, .3f, 0f), 0.25f, Vector3.down, out hitInfo, hookDistance + .3f, hookLayerMask.value))
 			{
 				unhookThreshold = 0;
@@ -184,7 +180,7 @@ namespace Superbstingray
 			}
 		}
 
-		// INPUT EVENTS: #MoveVertical, #MoveHorizontal, #InputJump.
+		// INPUT EVENTS: MoveVertical, MoveHorizontal, InputJump.
 		public override void InputMoveVertical(float Value, UdonInputEventArgs InputMoveVerticalArgs)
 		{
 			InputMoveV = InputMoveVerticalArgs.floatValue;
@@ -208,11 +204,11 @@ namespace Superbstingray
 			OverridesOff();
 		}
 
-		// The prefab uses a proxy collider to prevent the player controller from being affected by moving world
-		// colliders and this is to prevent the override collider from interacting with other colliders in the scene.
-		public void _IgnoreSceneCollision() //#IgnoreSceneCollision
+		// The prefab uses an additional overriding collider to prevent the VRC player controller from being affected by moving world
+		// colliders which can affect locomotion and animations, and this is to prevent the override collider from interacting with other colliders in the scene.
+		public void IgnoreSceneCollision()
 		{
-			SendCustomEventDelayedSeconds(nameof(_IgnoreSceneCollision), 60f);
+			SendCustomEventDelayedSeconds(nameof(IgnoreSceneCollision), 60f);
 			colliderArray = Physics.OverlapSphere(Vector3.zero, System.Single.MaxValue);
 			for (int i = 0; i < colliderArray.Length; i++)
 			{
@@ -224,8 +220,26 @@ namespace Superbstingray
 			}
 		}
 
-		// Disable Override Collider and set Immobilize state false.
-		public void OverridesOff()
+        void InitializeVariables() // Set Prefab Variables 
+        {
+            localPlayer = Networking.LocalPlayer;
+            if (!VRC.SDKBase.Utilities.IsValid(localPlayer)) { return; }
+            lastFramePos = localPlayer.GetPosition();
+            playerTracker = transform.GetChild(0).GetChild(0);
+            PlayerOffset = transform.GetChild(0);
+            hook = transform.GetChild(1);
+            platformOverride = transform.GetComponent<BoxCollider>();
+            platformOverride.size = new Vector3(0.5f, 0.05f, 0.5f);
+            transform.position = Vector3.zero;
+
+            if (hookLayerMask.value == -1) // Override if using "Everything" as a layermask to Everything -PlayerLocal,-MirrorReflection to prevent interference with the prefabs functionality.
+            {
+                hookLayerMask.value = -263369;
+            }
+        }
+
+        // Disable Override Collider and set Immobilize state false.
+        void OverridesOff()
 		{
 			if (!localPlayer.IsPlayerGrounded()) { platformOverride.enabled = false; }
 
