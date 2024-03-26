@@ -14,7 +14,7 @@ namespace Superbstingray
     public LayerMask hookLayerMask;
 
     [Tooltip("If the Player will hook onto trigger colliders")]
-	public QueryTriggerInteraction TriggerInteraction = QueryTriggerInteraction.UseGlobal;
+    public QueryTriggerInteraction TriggerInteraction = QueryTriggerInteraction.UseGlobal;
 
     [Tooltip("Vertical distance between the Player and Platform before the Script Unhooks from Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
     public float hookDistance = 0.75F;
