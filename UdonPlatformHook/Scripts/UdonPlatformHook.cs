@@ -13,6 +13,9 @@ namespace Superbstingray
     [Tooltip("Layers that the Player will move with.")]
     public LayerMask hookLayerMask;
 
+    [Tooltip("If the Player will hook onto trigger colliders")]
+    public QueryTriggerInteraction TriggerInteraction = QueryTriggerInteraction.UseGlobal;
+
     [Tooltip("Vertical distance between the Player and Platform before the Script Unhooks from Colliders. You may want to increase this value if your world has a higher than average jump impulse.")]
     public float hookDistance = 0.75F;
 
@@ -96,12 +99,12 @@ namespace Superbstingray
             if (!menuOpen)
             {
                 // Override_Spherecast. Set position of override collider.
-                Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3f, 0f), 0.25f, Vector3.down, out hitInfo, 10f, hookLayerMask.value);
+                Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0F, .3f, 0f), 0.25f, Vector3.down, out hitInfo, 10f, hookLayerMask.value, TriggerInteraction);
                 platformOverride.center = hitInfo.point;
 
                 // FixedUpdate_Spherecast. Check for valid platforms.
                 // Add to the unhookThreshold if it misses a valid platform and unhook if unhookThreshold is greater than X.
-                if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0f, .3f, 0f), 0.25f, Vector3.down, out hitInfo, hookDistance + .3f, hookLayerMask.value))
+                if (!Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0f, .3f, 0f), 0.25f, Vector3.down, out hitInfo, hookDistance + .3f, hookLayerMask.value, TriggerInteraction))
                 {
                     unhookThreshold++;
                     if (unhookThreshold > 10 && isHooked)
@@ -169,7 +172,7 @@ namespace Superbstingray
                 && Quaternion.Angle(new Quaternion(0f, headRotation.y, 0f, headRotation.w).normalized, localPlayer.GetRotation()) < 90f);
             }
             // LateUpdate_Spherecast. Check for valid platforms.
-            if (Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0f, .3f, 0f), 0.25f, Vector3.down, out hitInfo, hookDistance + .3f, hookLayerMask.value))
+            if (Physics.SphereCast(localPlayer.GetPosition() + new Vector3(0f, .3f, 0f), 0.25f, Vector3.down, out hitInfo, hookDistance + .3f, hookLayerMask.value, TriggerInteraction))
             {
                 unhookThreshold = 0;
                 if (unhookThreshold < 10 && (localPlayer.IsPlayerGrounded())) // Hook to the valid platform if the Player is grounded.
